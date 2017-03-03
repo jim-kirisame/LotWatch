@@ -4,13 +4,18 @@ export OUTPUT_FILENAME
 #MAKEFILE_NAME := $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 MAKEFILE_NAME := $(MAKEFILE_LIST)
 MAKEFILE_DIR := $(dir $(MAKEFILE_NAME) ) 
+# Modify it if your nRF SDK 10.0 is not located here
+NRF_SDK_PATH := D:/Develop/SDK/nrf51_10.0.0
+TEMPLATE_PATH = $(NRF_SDK_PATH)/components/toolchain/gcc
+SOURCE_PATH := ../../src
 
-TEMPLATE_PATH = ../../../../../../components/toolchain/gcc
 ifeq ($(OS),Windows_NT)
-include $(TEMPLATE_PATH)/Makefile.windows
+GNU_INSTALL_ROOT := H:/Program Files (x86)/GNU Tools ARM Embedded/5.4 2016q3
 else
-include $(TEMPLATE_PATH)/Makefile.posix
+GNU_INSTALL_ROOT := /h/Program Files (x86)/GNU Tools ARM Embedded/5.4 2016q3
 endif
+GNU_VERSION := 4.9.3
+GNU_PREFIX := arm-none-eabi
 
 MK := mkdir
 RM := rm -rf
@@ -37,55 +42,52 @@ remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-ou
 
 #source common to all targets
 C_SOURCE_FILES += \
-$(abspath ../../../../../../components/libraries/button/app_button.c) \
-$(abspath ../../../../../../components/libraries/util/app_error.c) \
-$(abspath ../../../../../../components/libraries/timer/app_timer.c) \
-$(abspath ../../../../../../components/libraries/trace/app_trace.c) \
-$(abspath ../../../../../../components/libraries/util/nrf_assert.c) \
-$(abspath ../../../../../../components/libraries/uart/retarget.c) \
-$(abspath ../../../../../../components/libraries/uart/app_uart.c) \
-$(abspath ../../../../../../components/drivers_nrf/delay/nrf_delay.c) \
-$(abspath ../../../../../../components/drivers_nrf/common/nrf_drv_common.c) \
-$(abspath ../../../../../../components/drivers_nrf/gpiote/nrf_drv_gpiote.c) \
-$(abspath ../../../../../../components/drivers_nrf/uart/nrf_drv_uart.c) \
-$(abspath ../../../../../../components/drivers_nrf/pstorage/pstorage.c) \
-$(abspath ../../../../../bsp/bsp.c) \
-$(abspath ../../../../../bsp/bsp_btn_ble.c) \
-$(abspath ../../../main.c) \
-$(abspath ../../../../../../components/ble/common/ble_advdata.c) \
-$(abspath ../../../../../../components/ble/ble_advertising/ble_advertising.c) \
-$(abspath ../../../../../../components/ble/common/ble_conn_params.c) \
-$(abspath ../../../../../../components/ble/common/ble_srv_common.c) \
-$(abspath ../../../../../../components/ble/device_manager/device_manager_peripheral.c) \
-$(abspath ../../../../../../components/toolchain/system_nrf51.c) \
-$(abspath ../../../../../../components/softdevice/common/softdevice_handler/softdevice_handler.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/button/app_button.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/util/app_error.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/timer/app_timer.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/trace/app_trace.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/util/nrf_assert.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/uart/retarget.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/uart/app_uart.c) \
+$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/delay/nrf_delay.c) \
+$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/common/nrf_drv_common.c) \
+$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c) \
+$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/uart/nrf_drv_uart.c) \
+$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/pstorage/pstorage.c) \
+$(abspath $(SOURCE_PATH)/main.c) \
+$(abspath $(NRF_SDK_PATH)/components/ble/common/ble_advdata.c) \
+$(abspath $(NRF_SDK_PATH)/components/ble/ble_advertising/ble_advertising.c) \
+$(abspath $(NRF_SDK_PATH)/components/ble/common/ble_conn_params.c) \
+$(abspath $(NRF_SDK_PATH)/components/ble/common/ble_srv_common.c) \
+$(abspath $(NRF_SDK_PATH)/components/ble/device_manager/device_manager_peripheral.c) \
+$(abspath $(NRF_SDK_PATH)/components/toolchain/system_nrf51.c) \
+$(abspath $(NRF_SDK_PATH)/components/softdevice/common/softdevice_handler/softdevice_handler.c) \
 
 #assembly files common to all targets
-ASM_SOURCE_FILES  = $(abspath ../../../../../../components/toolchain/gcc/gcc_startup_nrf51.s)
+ASM_SOURCE_FILES  = $(abspath $(NRF_SDK_PATH)/components/toolchain/gcc/gcc_startup_nrf51.s)
 
 #includes common to all targets
-INC_PATHS  = -I$(abspath ../../../config)
-INC_PATHS += -I$(abspath ../../../../../../components/libraries/util)
-INC_PATHS += -I$(abspath ../../../../../../components/drivers_nrf/pstorage)
-INC_PATHS += -I$(abspath ../../../../../../components/toolchain/gcc)
-INC_PATHS += -I$(abspath ../../../../../../components/toolchain)
-INC_PATHS += -I$(abspath ../../../../../../components/ble/common)
-INC_PATHS += -I$(abspath ../../../../../../components/drivers_nrf/common)
-INC_PATHS += -I$(abspath ../../../../../../components/ble/ble_advertising)
-INC_PATHS += -I$(abspath ../../../../../../components/drivers_nrf/config)
-INC_PATHS += -I$(abspath ../../../../../bsp)
-INC_PATHS += -I$(abspath ../../../../../../components/libraries/trace)
-INC_PATHS += -I$(abspath ../../../../../../components/drivers_nrf/gpiote)
-INC_PATHS += -I$(abspath ../../../../../../components/ble/device_manager)
-INC_PATHS += -I$(abspath ../../../../../../components/drivers_nrf/uart)
-INC_PATHS += -I$(abspath ../../../../../../components/libraries/uart)
-INC_PATHS += -I$(abspath ../../../../../../components/device)
-INC_PATHS += -I$(abspath ../../../../../../components/softdevice/common/softdevice_handler)
-INC_PATHS += -I$(abspath ../../../../../../components/softdevice/s110/headers)
-INC_PATHS += -I$(abspath ../../../../../../components/drivers_nrf/delay)
-INC_PATHS += -I$(abspath ../../../../../../components/libraries/timer)
-INC_PATHS += -I$(abspath ../../../../../../components/drivers_nrf/hal)
-INC_PATHS += -I$(abspath ../../../../../../components/libraries/button)
+INC_PATHS  = -I$(abspath $(SOURCE_PATH)/config)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/libraries/util)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/pstorage)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/toolchain/gcc)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/toolchain)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/ble/common)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/common)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/ble/ble_advertising)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/config)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/libraries/trace)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/gpiote)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/ble/device_manager)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/uart)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/libraries/uart)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/device)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/softdevice/common/softdevice_handler)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/softdevice/s110/headers)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/delay)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/libraries/timer)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/hal)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/libraries/button)
 
 OBJECT_DIRECTORY = _build
 LISTING_DIRECTORY = $(OBJECT_DIRECTORY)
@@ -127,17 +129,17 @@ ASMFLAGS += -DS110
 ASMFLAGS += -DBLE_STACK_SUPPORT_REQD
 ASMFLAGS += -DSWI_DISABLE0
 #default target - first one defined
-default: clean nrf51422_xxac_s110
+default: clean LotWatch_App_S110
 
 #building all targets
 all: clean
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e cleanobj
-	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e nrf51422_xxac_s110
+	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e LotWatch_App_S110
 
 #target for printing all targets
 help:
 	@echo following targets are available:
-	@echo 	nrf51422_xxac_s110
+	@echo 	LotWatch_App_S110
 	@echo 	flash_softdevice
 
 
@@ -154,9 +156,9 @@ vpath %.s $(ASM_PATHS)
 
 OBJECTS = $(C_OBJECTS) $(ASM_OBJECTS)
 
-nrf51422_xxac_s110: OUTPUT_FILENAME := nrf51422_xxac_s110
-nrf51422_xxac_s110: LINKER_SCRIPT=ble_app_template_gcc_nrf51.ld
-nrf51422_xxac_s110: $(BUILD_DIRECTORIES) $(OBJECTS)
+LotWatch_App_S110: OUTPUT_FILENAME := LotWatch_App_S110
+LotWatch_App_S110: LINKER_SCRIPT=ble_app_template_gcc_nrf51.ld
+LotWatch_App_S110: $(BUILD_DIRECTORIES) $(OBJECTS)
 	@echo Linking target: $(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e finalize
@@ -216,12 +218,12 @@ cleanobj:
 	$(RM) $(BUILD_DIRECTORIES)/*.o
 
 flash: $(MAKECMDGOALS)
-	@echo Flashing: $(OUTPUT_BINARY_DIRECTORY)/$<.hex
-	nrfjprog --program $(OUTPUT_BINARY_DIRECTORY)/$<.hex -f nrf51  --sectorerase
+	@echo Flashing: $(OUTPUT_BINARY_DIRECTORY)/LotWatch_App_S110.hex
+	nrfjprog --program $(OUTPUT_BINARY_DIRECTORY)/LotWatch_App_S110.hex -f nrf51  --sectorerase
 	nrfjprog --reset
 
 ## Flash softdevice
 flash_softdevice:
 	@echo Flashing: s110_nrf51_8.0.0_softdevice.hex
-	nrfjprog --program ../../../../../../components/softdevice/s110/hex/s110_nrf51_8.0.0_softdevice.hex -f nrf51 --chiperase
+	nrfjprog --program $(NRF_SDK_PATH)/components/softdevice/s110/hex/s110_nrf51_8.0.0_softdevice.hex -f nrf51 --chiperase
 	nrfjprog --reset

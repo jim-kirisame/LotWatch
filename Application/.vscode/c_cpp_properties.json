@@ -1,0 +1,49 @@
+{
+    "configurations": [{
+            "name": "Mac",
+            "includePath": ["/usr/include"],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        },
+        {
+            "name": "Linux",
+            "includePath": ["/usr/include"],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        },
+        {
+            "name": "Win32",
+            "includePath": ["H:/Program Files (x86)/GNU Tools ARM Embedded/5.4 2016q3/arm-none-eabi/include/c++/5.4.1",
+                "src/config",
+                "D:/Develop/SDK/nrf51_10.0.0/components/libraries/util",
+                "D:/Develop/SDK/nrf51_10.0.0/components/drivers_nrf/pstorage",
+                "D:/Develop/SDK/nrf51_10.0.0/components/toolchain/gcc",
+                "D:/Develop/SDK/nrf51_10.0.0/components/toolchain",
+                "D:/Develop/SDK/nrf51_10.0.0/components/ble/common",
+                "D:/Develop/SDK/nrf51_10.0.0/components/drivers_nrf/common",
+                "D:/Develop/SDK/nrf51_10.0.0/components/ble/ble_advertising",
+                "D:/Develop/SDK/nrf51_10.0.0/components/drivers_nrf/config",
+                "D:/Develop/SDK/nrf51_10.0.0/components/libraries/trace",
+                "D:/Develop/SDK/nrf51_10.0.0/components/drivers_nrf/gpiote",
+                "D:/Develop/SDK/nrf51_10.0.0/components/ble/device_manager",
+                "D:/Develop/SDK/nrf51_10.0.0/components/drivers_nrf/uart",
+                "D:/Develop/SDK/nrf51_10.0.0/components/libraries/uart",
+                "D:/Develop/SDK/nrf51_10.0.0/components/device",
+                "D:/Develop/SDK/nrf51_10.0.0/components/softdevice/common/softdevice_handler",
+                "D:/Develop/SDK/nrf51_10.0.0/components/softdevice/s110/headers",
+                "D:/Develop/SDK/nrf51_10.0.0/components/drivers_nrf/delay",
+                "D:/Develop/SDK/nrf51_10.0.0/components/libraries/timer",
+                "D:/Develop/SDK/nrf51_10.0.0/components/drivers_nrf/hal",
+                "D:/Develop/SDK/nrf51_10.0.0/components/libraries/button"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        }
+    ]
+}
