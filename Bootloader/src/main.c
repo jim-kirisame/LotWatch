@@ -44,18 +44,9 @@
 #include "app_scheduler.h"
 #include "app_timer_appsh.h"
 #include "nrf_error.h"
-#include "bsp.h"
 #include "softdevice_handler_appsh.h"
 #include "pstorage_platform.h"
 #include "nrf_mbr.h"
-
-#if BUTTONS_NUMBER < 1
-#error "Not enough buttons on board"
-#endif
-
-#if LEDS_NUMBER < 1
-#error "Not enough LEDs on board"
-#endif
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                                       /**< Include the service_changed characteristic. For DFU this should normally be the case. */
 
@@ -91,8 +82,7 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
  */
 static void leds_init(void)
 {
-    nrf_gpio_range_cfg_output(LED_START, LED_STOP);
-    nrf_gpio_pins_set(LEDS_MASK);
+
 }
 
 
@@ -109,9 +99,6 @@ static void timers_init(void)
  */
 static void buttons_init(void)
 {
-    nrf_gpio_cfg_sense_input(BOOTLOADER_BUTTON,
-                             BUTTON_PULL, 
-                             NRF_GPIO_PIN_SENSE_LOW);
 
 }
 
@@ -206,7 +193,7 @@ int main(void)
 
     if (bootloader_dfu_sd_in_progress())
     {
-        nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
+        //nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
 
         err_code = bootloader_dfu_sd_update_continue();
         APP_ERROR_CHECK(err_code);
@@ -217,7 +204,7 @@ int main(void)
         err_code = bootloader_dfu_sd_update_finalize();
         APP_ERROR_CHECK(err_code);
 
-        nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
+        //nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
     }
     else
     {
@@ -227,17 +214,17 @@ int main(void)
     }
 
     dfu_start  = app_reset;
-    dfu_start |= ((nrf_gpio_pin_read(BOOTLOADER_BUTTON) == 0) ? true: false);
+    //dfu_start |= ((nrf_gpio_pin_read(BOOTLOADER_BUTTON) == 0) ? true: false);
     
     if (dfu_start || (!bootloader_app_is_valid(DFU_BANK_0_REGION_START)))
     {
-        nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
+        //nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
 
         // Initiate an update of the firmware.
         err_code = bootloader_dfu_start();
         APP_ERROR_CHECK(err_code);
 
-        nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
+        //nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
     }
 
     if (bootloader_app_is_valid(DFU_BANK_0_REGION_START) && !bootloader_dfu_sd_in_progress())

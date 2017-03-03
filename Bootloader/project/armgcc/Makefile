@@ -4,13 +4,18 @@ export OUTPUT_FILENAME
 #MAKEFILE_NAME := $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 MAKEFILE_NAME := $(MAKEFILE_LIST)
 MAKEFILE_DIR := $(dir $(MAKEFILE_NAME) ) 
+# Modify it if your nRF SDK 10.0 is not located here
+NRF_SDK_PATH := D:/Develop/SDK/nrf51_10.0.0
+TEMPLATE_PATH = $(NRF_SDK_PATH)/components/toolchain/gcc
+SOURCE_PATH := ../../src
 
-TEMPLATE_PATH = ../../../../../../components/toolchain/gcc
 ifeq ($(OS),Windows_NT)
-include $(TEMPLATE_PATH)/Makefile.windows
+GNU_INSTALL_ROOT := H:/Program Files (x86)/GNU Tools ARM Embedded/5.4 2016q3
 else
-include $(TEMPLATE_PATH)/Makefile.posix
+GNU_INSTALL_ROOT := /h/Program Files (x86)/GNU Tools ARM Embedded/5.4 2016q3
 endif
+GNU_VERSION := 4.9.3
+GNU_PREFIX := arm-none-eabi
 
 MK := mkdir
 RM := rm -rf
@@ -37,55 +42,53 @@ remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-ou
 
 #source common to all targets
 C_SOURCE_FILES += \
-$(abspath ../../../../../../components/libraries/util/app_error.c) \
-$(abspath ../../../../../../components/libraries/scheduler/app_scheduler.c) \
-$(abspath ../../../../../../components/libraries/timer/app_timer.c) \
-$(abspath ../../../../../../components/libraries/timer/app_timer_appsh.c) \
-$(abspath ../../../../../../components/libraries/bootloader_dfu/bootloader.c) \
-$(abspath ../../../../../../components/libraries/bootloader_dfu/bootloader_settings.c) \
-$(abspath ../../../../../../components/libraries/bootloader_dfu/bootloader_util.c) \
-$(abspath ../../../../../../components/libraries/crc16/crc16.c) \
-$(abspath ../../../../../../components/libraries/bootloader_dfu/dfu_dual_bank.c) \
-$(abspath ../../../../../../components/libraries/bootloader_dfu/dfu_init_template.c) \
-$(abspath ../../../../../../components/libraries/bootloader_dfu/dfu_transport_ble.c) \
-$(abspath ../../../../../../components/libraries/hci/hci_mem_pool.c) \
-$(abspath ../../../../../../components/libraries/util/nrf_assert.c) \
-$(abspath ../../../../../../components/drivers_nrf/delay/nrf_delay.c) \
-$(abspath ../../../../../../components/drivers_nrf/pstorage/pstorage_raw.c) \
-$(abspath ../../../dfu_ble_svc.c) \
-$(abspath ../../../main.c) \
-$(abspath ../../../../../../components/ble/common/ble_advdata.c) \
-$(abspath ../../../../../../components/ble/common/ble_conn_params.c) \
-$(abspath ../../../../../../components/ble/ble_services/ble_dfu/ble_dfu.c) \
-$(abspath ../../../../../../components/ble/common/ble_srv_common.c) \
-$(abspath ../../../../../../components/toolchain/system_nrf51.c) \
-$(abspath ../../../../../../components/softdevice/common/softdevice_handler/softdevice_handler.c) \
-$(abspath ../../../../../../components/softdevice/common/softdevice_handler/softdevice_handler_appsh.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/util/app_error.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/scheduler/app_scheduler.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/timer/app_timer.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/timer/app_timer_appsh.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/bootloader_dfu/bootloader.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/bootloader_dfu/bootloader_settings.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/bootloader_dfu/bootloader_util.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/crc16/crc16.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/bootloader_dfu/dfu_dual_bank.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/bootloader_dfu/dfu_init_template.c) \
+$(abspath $(SOURCE_PATH)/dfu_transport_ble.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/hci/hci_mem_pool.c) \
+$(abspath $(NRF_SDK_PATH)/components/libraries/util/nrf_assert.c) \
+$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/delay/nrf_delay.c) \
+$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/pstorage/pstorage_raw.c) \
+$(abspath $(SOURCE_PATH)/dfu_ble_svc.c) \
+$(abspath $(SOURCE_PATH)/main.c) \
+$(abspath $(NRF_SDK_PATH)/components/ble/common/ble_advdata.c) \
+$(abspath $(NRF_SDK_PATH)/components/ble/common/ble_conn_params.c) \
+$(abspath $(NRF_SDK_PATH)/components/ble/ble_services/ble_dfu/ble_dfu.c) \
+$(abspath $(NRF_SDK_PATH)/components/ble/common/ble_srv_common.c) \
+$(abspath $(NRF_SDK_PATH)/components/toolchain/system_nrf51.c) \
+$(abspath $(NRF_SDK_PATH)/components/softdevice/common/softdevice_handler/softdevice_handler.c) \
+$(abspath $(NRF_SDK_PATH)/components/softdevice/common/softdevice_handler/softdevice_handler_appsh.c) \
 
 #assembly files common to all targets
-ASM_SOURCE_FILES  = $(abspath ../../../../../../components/toolchain/gcc/gcc_startup_nrf51.s)
+ASM_SOURCE_FILES  = $(abspath $(NRF_SDK_PATH)/components/toolchain/gcc/gcc_startup_nrf51.s)
 
 #includes common to all targets
-INC_PATHS  = -I$(abspath ../../../config/dfu_dual_bank_ble_s110_pca10028)
-INC_PATHS += -I$(abspath ../../../config)
-INC_PATHS += -I$(abspath ../../../../../../components/libraries/util)
-INC_PATHS += -I$(abspath ../../../../../../components/toolchain/gcc)
-INC_PATHS += -I$(abspath ../../../../../../components/toolchain)
-INC_PATHS += -I$(abspath ../../../../../../components/ble/common)
-INC_PATHS += -I$(abspath ../../../../../../components/libraries/scheduler)
-INC_PATHS += -I$(abspath ../../../../../../components/softdevice/s110/headers)
-INC_PATHS += -I$(abspath ../../../../../bsp)
-INC_PATHS += -I$(abspath ../../../../../../components/drivers_nrf/pstorage)
-INC_PATHS += -I$(abspath ../../../../../../components/libraries/bootloader_dfu/ble_transport)
-INC_PATHS += -I$(abspath ../../../../../../components/softdevice/common/softdevice_handler)
-INC_PATHS += -I$(abspath ../../../../../../components/device)
-INC_PATHS += -I$(abspath ../../../../../../components/libraries/hci)
-INC_PATHS += -I$(abspath ../../../../../../components/drivers_nrf/delay)
-INC_PATHS += -I$(abspath ../../../../../../components/libraries/crc16)
-INC_PATHS += -I$(abspath ../../../../../../components/ble/ble_services/ble_dfu)
-INC_PATHS += -I$(abspath ../../../../../../components/libraries/timer)
-INC_PATHS += -I$(abspath ../../../../../../components/drivers_nrf/hal)
-INC_PATHS += -I$(abspath ../../../../../../components/libraries/bootloader_dfu)
+INC_PATHS  = -I$(abspath $(SOURCE_PATH)/config)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/libraries/util)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/toolchain/gcc)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/toolchain)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/ble/common)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/libraries/scheduler)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/softdevice/s110/headers)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/pstorage)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/libraries/bootloader_dfu/ble_transport)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/softdevice/common/softdevice_handler)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/device)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/libraries/hci)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/delay)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/libraries/crc16)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/ble/ble_services/ble_dfu)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/libraries/timer)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/drivers_nrf/hal)
+INC_PATHS += -I$(abspath $(NRF_SDK_PATH)/components/libraries/bootloader_dfu)
 
 OBJECT_DIRECTORY = _build
 LISTING_DIRECTORY = $(OBJECT_DIRECTORY)
@@ -157,7 +160,7 @@ vpath %.s $(ASM_PATHS)
 
 OBJECTS = $(C_OBJECTS) $(ASM_OBJECTS)
 
-nrf51422_xxac: OUTPUT_FILENAME := nrf51422_xxac
+nrf51422_xxac: OUTPUT_FILENAME := ble_watch_bootloader
 nrf51422_xxac: LINKER_SCRIPT=../../../dfu_gcc_nrf51.ld
 nrf51422_xxac: $(BUILD_DIRECTORIES) $(OBJECTS)
 	@echo Linking target: $(OUTPUT_FILENAME).out
