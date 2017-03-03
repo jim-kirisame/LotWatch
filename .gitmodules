@@ -1,0 +1,6 @@
+[submodule "Library/SSD1306"]
+	path = Library/SSD1306
+	url = https://github.com/adafruit/Adafruit_SSD1306
+[submodule "Library/MMA8452Q"]
+	path = Library/MMA8452Q
+	url = https://github.com/sparkfun/SparkFun_MMA8452Q_Arduino_Library
