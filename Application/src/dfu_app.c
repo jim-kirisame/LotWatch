@@ -132,4 +132,4 @@ void dfu_device_manager_event_handler(dm_handle_t const *p_handle,
         app_context_load(p_handle);
     }
 }
-																					 
+

@@ -29,6 +29,7 @@
 #include "nordic_common.h"
 #include "nrf.h"
 #include "app_error.h"
+#include "main.h"
 #include "ble.h"
 #include "ble_hci.h"
 #include "ble_srv_common.h"
@@ -44,6 +45,7 @@
 //#include "bsp.h"
 //#include "bsp_btn_ble.h"
 #include "dfu_app.h"
+#include "bas_app.h"
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1 /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
@@ -51,9 +53,6 @@
 #define MANUFACTURER_NAME "NordicSemiconductor" /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL 300                    /**< The advertising interval (in units of 0.625 ms. This value corresponds to 25 ms). */
 #define APP_ADV_TIMEOUT_IN_SECONDS 180          /**< The advertising timeout in units of seconds. */
-
-#define APP_TIMER_PRESCALER 0     /**< Value of the RTC1 PRESCALER register. */
-#define APP_TIMER_OP_QUEUE_SIZE 4 /**< Size of timer operation queues. */
 
 #define MIN_CONN_INTERVAL MSEC_TO_UNITS(100, UNIT_1_25_MS) /**< Minimum acceptable connection interval (0.1 seconds). */
 #define MAX_CONN_INTERVAL MSEC_TO_UNITS(200, UNIT_1_25_MS) /**< Maximum acceptable connection interval (0.2 second). */
@@ -112,14 +111,7 @@ static void timers_init(void)
     APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
 
     // Create timers.
-
-    /* YOUR_JOB: Create any timers to be used by the application.
-                 Below is an example of how to create a timer.
-                 For every new timer needed, increase the value of the macro APP_TIMER_MAX_TIMERS by
-                 one.
-    uint32_t err_code;
-    err_code = app_timer_create(&m_app_timer_id, APP_TIMER_MODE_REPEATED, timer_timeout_handler);
-    APP_ERROR_CHECK(err_code); */
+		bas_timer_init();
 }
 
 /**@brief Function for the GAP initialization.
@@ -185,6 +177,7 @@ static void on_yys_evt(ble_yy_service_t     * p_yy_service,
 static void services_init(void)
 {
     dfu_serv_init(&m_app_handle);
+	  bas_app_init();
 }
 
 /**@brief Function for handling the Connection Parameters Module.
@@ -247,6 +240,7 @@ static void application_timers_start(void)
     uint32_t err_code;
     err_code = app_timer_start(m_app_timer_id, TIMER_INTERVAL, NULL);
     APP_ERROR_CHECK(err_code); */
+		bas_timer_start();
 }
 
 /**@brief Function for putting the chip into sleep mode.
@@ -267,6 +261,7 @@ static void sleep_mode_enter(void)
     err_code = sd_power_system_off();
     APP_ERROR_CHECK(err_code);
     **/
+		bas_timer_stop();
 }
 
 /**@brief Function for handling advertising events.
@@ -335,6 +330,8 @@ static void ble_evt_dispatch(ble_evt_t *p_ble_evt)
     ble_advertising_on_ble_evt(p_ble_evt);
 
     dfu_ble_evt_dispatch(p_ble_evt);
+	
+		bas_ble_evt_dispatch(p_ble_evt);
 }
 
 /**@brief Function for dispatching a system event to interested modules.
@@ -497,6 +494,7 @@ static void advertising_init(void)
  */
 static void buttons_leds_init(bool *p_erase_bonds)
 {
+		UNUSED_PARAMETER(p_erase_bonds);
     /**
     bsp_event_t startup_event;
 
@@ -530,7 +528,7 @@ int main(void)
 
     // Initialize.
     timers_init();
-    //buttons_leds_init(&erase_bonds);
+    buttons_leds_init(&erase_bonds);
     ble_stack_init();
     device_manager_init(erase_bonds);
     gap_params_init();

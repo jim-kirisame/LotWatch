@@ -335,7 +335,7 @@
               <MiscControls>--c99</MiscControls>
               <Define>BLE_STACK_SUPPORT_REQD S110 BOARD_PCA10028 SOFTDEVICE_PRESENT NRF51 SWI_DISABLE0</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\src;..\..\src\config;D:\Develop\SDK\nrf51_10.0.0\examples\bsp;D:\Develop\SDK\nrf51_10.0.0\components\toolchain;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_advertising;D:\Develop\SDK\nrf51_10.0.0\components\ble\common;D:\Develop\SDK\nrf51_10.0.0\components\ble\device_manager;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\common;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\delay;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\gpiote;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\config;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\hal;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\pstorage;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\uart;D:\Develop\SDK\nrf51_10.0.0\components\libraries\button;D:\Develop\SDK\nrf51_10.0.0\components\libraries\timer;D:\Develop\SDK\nrf51_10.0.0\components\libraries\trace;D:\Develop\SDK\nrf51_10.0.0\components\libraries\uart;D:\Develop\SDK\nrf51_10.0.0\components\libraries\util;D:\Develop\SDK\nrf51_10.0.0\components\libraries\hci;D:\Develop\SDK\nrf51_10.0.0\components\softdevice\common\softdevice_handler;D:\Develop\SDK\nrf51_10.0.0\components\softdevice\s110\headers;D:\Develop\SDK\nrf51_10.0.0\components\libraries\bootloader_dfu;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_services\ble_dfu</IncludePath>
+              <IncludePath>..\..\src;..\..\src\config;D:\Develop\SDK\nrf51_10.0.0\examples\bsp;D:\Develop\SDK\nrf51_10.0.0\components\toolchain;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_advertising;D:\Develop\SDK\nrf51_10.0.0\components\ble\common;D:\Develop\SDK\nrf51_10.0.0\components\ble\device_manager;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\common;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\delay;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\gpiote;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\config;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\hal;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\pstorage;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\uart;D:\Develop\SDK\nrf51_10.0.0\components\libraries\button;D:\Develop\SDK\nrf51_10.0.0\components\libraries\timer;D:\Develop\SDK\nrf51_10.0.0\components\libraries\trace;D:\Develop\SDK\nrf51_10.0.0\components\libraries\uart;D:\Develop\SDK\nrf51_10.0.0\components\libraries\util;D:\Develop\SDK\nrf51_10.0.0\components\libraries\hci;D:\Develop\SDK\nrf51_10.0.0\components\softdevice\common\softdevice_handler;D:\Develop\SDK\nrf51_10.0.0\components\softdevice\s110\headers;D:\Develop\SDK\nrf51_10.0.0\components\libraries\bootloader_dfu;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_services\ble_dfu;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_services\ble_bas</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -438,6 +438,11 @@
               <FileName>dfu_app.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\dfu_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>bas_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\bas_app.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1188,6 +1193,16 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
+            </File>
+            <File>
+              <FileName>nrf_adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\hal\nrf_adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>ble_bas.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_services\ble_bas\ble_bas.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2060,6 +2075,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\dfu_app.c</FilePath>
             </File>
+            <File>
+              <FileName>bas_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\bas_app.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2809,6 +2829,16 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
+            </File>
+            <File>
+              <FileName>nrf_adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\hal\nrf_adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>ble_bas.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_services\ble_bas\ble_bas.c</FilePath>
             </File>
           </Files>
         </Group>
