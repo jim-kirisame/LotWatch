@@ -43,6 +43,7 @@
 #include "app_trace.h"
 //#include "bsp.h"
 //#include "bsp_btn_ble.h"
+#include "dfu_app.h"
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1 /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
@@ -74,16 +75,16 @@
 
 static dm_application_instance_t m_app_handle; /**< Application identifier allocated by device manager */
 
-static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID; /**< Handle of the current connection. */
+uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID; /**< Handle of the current connection. */
 
-/* YOUR_JOB: Declare all services structure your application is using
-static ble_xx_service_t                     m_xxs;
-static ble_yy_service_t                     m_yys;
-*/
+static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE},
+                                   {BLE_UUID_BATTERY_SERVICE,            BLE_UUID_TYPE_BLE},
+                                   {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}}; /**< Universally unique service identifiers. */
+                                   
+STATIC_ASSERT(IS_SRVC_CHANGED_CHARACT_PRESENT);                                     /** When having DFU Service support in application the Service Changed Characteristic should always be present. */
 
-// YOUR_JOB: Use UUIDs for service(s) used in your application.
-static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}}; /**< Universally unique service identifiers. */
-
+																	 
+																	 
 /**@brief Callback function for asserts in the SoftDevice.
  *
  * @details This function will be called in case of an assert in the SoftDevice.
@@ -183,29 +184,7 @@ static void on_yys_evt(ble_yy_service_t     * p_yy_service,
  */
 static void services_init(void)
 {
-    /* YOUR_JOB: Add code to initialize the services used by the application.
-    uint32_t                           err_code;
-    ble_xxs_init_t                     xxs_init;
-    ble_yys_init_t                     yys_init;
-
-    // Initialize XXX Service.
-    memset(&xxs_init, 0, sizeof(xxs_init));
-
-    xxs_init.evt_handler                = NULL;
-    xxs_init.is_xxx_notify_supported    = true;
-    xxs_init.ble_xx_initial_value.level = 100; 
-    
-    err_code = ble_bas_init(&m_xxs, &xxs_init);
-    APP_ERROR_CHECK(err_code);
-
-    // Initialize YYY Service.
-    memset(&yys_init, 0, sizeof(yys_init));
-    yys_init.evt_handler                  = on_yys_evt;
-    yys_init.ble_yy_initial_value.counter = 0;
-
-    err_code = ble_yy_service_init(&yys_init, &yy_init);
-    APP_ERROR_CHECK(err_code);
-    */
+    dfu_serv_init(&m_app_handle);
 }
 
 /**@brief Function for handling the Connection Parameters Module.
@@ -354,10 +333,8 @@ static void ble_evt_dispatch(ble_evt_t *p_ble_evt)
     //bsp_btn_ble_on_ble_evt(p_ble_evt);
     on_ble_evt(p_ble_evt);
     ble_advertising_on_ble_evt(p_ble_evt);
-    /*YOUR_JOB add calls to _on_ble_evt functions from each service your application is using
-    ble_xxs_on_ble_evt(&m_xxs, p_ble_evt);
-    ble_yys_on_ble_evt(&m_yys, p_ble_evt);
-    */
+
+    dfu_ble_evt_dispatch(p_ble_evt);
 }
 
 /**@brief Function for dispatching a system event to interested modules.
@@ -451,12 +428,7 @@ static uint32_t device_manager_evt_handler(dm_handle_t const *p_handle,
 {
     APP_ERROR_CHECK(event_result);
 
-#ifdef BLE_DFU_APP_SUPPORT
-    if (p_event->event_id == DM_EVT_LINK_SECURED)
-    {
-        app_context_load(p_handle);
-    }
-#endif // BLE_DFU_APP_SUPPORT
+    dfu_device_manager_event_handler(p_handle, p_event);
 
     return NRF_SUCCESS;
 }
