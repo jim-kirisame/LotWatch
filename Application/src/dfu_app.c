@@ -1,5 +1,4 @@
-#include "nordic_common.h"
-#include "nrf.h"
+#include "main.h"
 #include "dfu_app.h"
 #include "app_error.h"
 #include "ble_hci.h"

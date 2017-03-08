@@ -122,7 +122,7 @@
 #endif
 
 /* SPI */
-#define SPI0_ENABLED 0
+#define SPI0_ENABLED 1
 
 #if (SPI0_ENABLED == 1)
 #define SPI0_USE_EASY_DMA 0

@@ -4,7 +4,8 @@
 _Bool charge_charging;
 _Bool charge_fulled;
 
-
+#define CHRG_PIN 9
+#define STDBY_PIN 10
 
 
 #endif

@@ -1,8 +1,6 @@
 #include <stdint.h>
 #include <string.h>
 #include "bas_app.h"
-#include "nordic_common.h"
-#include "nrf.h"
 #include "app_error.h"
 #include "app_timer.h"
 #include "ble_bas.h"

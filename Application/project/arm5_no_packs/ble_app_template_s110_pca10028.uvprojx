@@ -15,8 +15,8 @@
         <TargetCommonOption>
           <Device>nRF51422_xxAC</Device>
           <Vendor>Nordic Semiconductor</Vendor>
-          <PackID>NordicSemiconductor.nRF_DeviceFamilyPack.8.11.1</PackID>
-          <PackURL>http://developer.nordicsemi.com/nRF5_SDK/pieces/nRF_DeviceFamilyPack/</PackURL>
+          <PackID>NordicSemiconductor.nRF_DeviceFamilyPack.8.2.0</PackID>
+          <PackURL>http://developer.nordicsemi.com/nRF51_SDK/pieces/nRF_DeviceFamilyPack/</PackURL>
           <Cpu>IROM(0x00000000,0x40000) IRAM(0x20000000,0x8000) CPUTYPE("Cortex-M0") CLOCK(16000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
@@ -137,7 +137,7 @@
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>Segger\JL2CM3.dll</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -335,7 +335,7 @@
               <MiscControls>--c99</MiscControls>
               <Define>BLE_STACK_SUPPORT_REQD S110 BOARD_PCA10028 SOFTDEVICE_PRESENT NRF51 SWI_DISABLE0</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\src;..\..\src\config;D:\Develop\SDK\nrf51_10.0.0\examples\bsp;D:\Develop\SDK\nrf51_10.0.0\components\toolchain;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_advertising;D:\Develop\SDK\nrf51_10.0.0\components\ble\common;D:\Develop\SDK\nrf51_10.0.0\components\ble\device_manager;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\common;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\delay;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\gpiote;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\config;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\hal;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\pstorage;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\uart;D:\Develop\SDK\nrf51_10.0.0\components\libraries\button;D:\Develop\SDK\nrf51_10.0.0\components\libraries\timer;D:\Develop\SDK\nrf51_10.0.0\components\libraries\trace;D:\Develop\SDK\nrf51_10.0.0\components\libraries\uart;D:\Develop\SDK\nrf51_10.0.0\components\libraries\util;D:\Develop\SDK\nrf51_10.0.0\components\libraries\hci;D:\Develop\SDK\nrf51_10.0.0\components\softdevice\common\softdevice_handler;D:\Develop\SDK\nrf51_10.0.0\components\softdevice\s110\headers;D:\Develop\SDK\nrf51_10.0.0\components\libraries\bootloader_dfu;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_services\ble_dfu;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_services\ble_bas</IncludePath>
+              <IncludePath>..\..\src;..\..\src\config;D:\Develop\SDK\nrf51_10.0.0\components\device;D:\Develop\SDK\nrf51_10.0.0\examples\bsp;D:\Develop\SDK\nrf51_10.0.0\components\toolchain;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_advertising;D:\Develop\SDK\nrf51_10.0.0\components\ble\common;D:\Develop\SDK\nrf51_10.0.0\components\ble\device_manager;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\common;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\delay;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\gpiote;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\config;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\hal;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\pstorage;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\uart;D:\Develop\SDK\nrf51_10.0.0\components\libraries\button;D:\Develop\SDK\nrf51_10.0.0\components\libraries\timer;D:\Develop\SDK\nrf51_10.0.0\components\libraries\trace;D:\Develop\SDK\nrf51_10.0.0\components\libraries\uart;D:\Develop\SDK\nrf51_10.0.0\components\libraries\util;D:\Develop\SDK\nrf51_10.0.0\components\libraries\hci;D:\Develop\SDK\nrf51_10.0.0\components\softdevice\common\softdevice_handler;D:\Develop\SDK\nrf51_10.0.0\components\softdevice\s110\headers;D:\Develop\SDK\nrf51_10.0.0\components\libraries\bootloader_dfu;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_services\ble_dfu;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_services\ble_bas;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\spi_master</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -443,6 +443,11 @@
               <FileName>bas_app.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\bas_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>ssd1306_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\ssd1306_app.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1203,6 +1208,11 @@
               <FileName>ble_bas.c</FileName>
               <FileType>1</FileType>
               <FilePath>D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_services\ble_bas\ble_bas.c</FilePath>
+            </File>
+            <File>
+              <FileName>nrf_drv_spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\spi_master\nrf_drv_spi.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1651,8 +1661,8 @@
         <TargetCommonOption>
           <Device>nRF51422_xxAC</Device>
           <Vendor>Nordic Semiconductor</Vendor>
-          <PackID>NordicSemiconductor.nRF_DeviceFamilyPack.8.11.1</PackID>
-          <PackURL>http://developer.nordicsemi.com/nRF5_SDK/pieces/nRF_DeviceFamilyPack/</PackURL>
+          <PackID>NordicSemiconductor.nRF_DeviceFamilyPack.8.2.0</PackID>
+          <PackURL>http://developer.nordicsemi.com/nRF51_SDK/pieces/nRF_DeviceFamilyPack/</PackURL>
           <Cpu>IROM(0x00000000,0x40000) IRAM(0x20000000,0x8000) CPUTYPE("Cortex-M0") CLOCK(16000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
@@ -2079,6 +2089,11 @@
               <FileName>bas_app.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\bas_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>ssd1306_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\ssd1306_app.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2839,6 +2854,11 @@
               <FileName>ble_bas.c</FileName>
               <FileType>1</FileType>
               <FilePath>D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_services\ble_bas\ble_bas.c</FilePath>
+            </File>
+            <File>
+              <FileName>nrf_drv_spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\spi_master\nrf_drv_spi.c</FilePath>
             </File>
           </Files>
         </Group>

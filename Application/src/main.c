@@ -26,8 +26,6 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "nordic_common.h"
-#include "nrf.h"
 #include "app_error.h"
 #include "main.h"
 #include "ble.h"
@@ -46,6 +44,8 @@
 //#include "bsp_btn_ble.h"
 #include "dfu_app.h"
 #include "bas_app.h"
+#include "spi_hal.h"
+#include "nrf_gpio.h"
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1 /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
@@ -494,20 +494,9 @@ static void advertising_init(void)
  */
 static void buttons_leds_init(bool *p_erase_bonds)
 {
-		UNUSED_PARAMETER(p_erase_bonds);
-    /**
-    bsp_event_t startup_event;
-
-    uint32_t err_code = bsp_init(BSP_INIT_LED | BSP_INIT_BUTTONS,
-                                 APP_TIMER_TICKS(100, APP_TIMER_PRESCALER), 
-                                 bsp_event_handler);
-    APP_ERROR_CHECK(err_code);
-
-    err_code = bsp_btn_ble_init(NULL, &startup_event);
-    APP_ERROR_CHECK(err_code);
-
-    *p_erase_bonds = (startup_event == BSP_EVENT_CLEAR_BONDING_DATA);
-    **/
+	UNUSED_PARAMETER(p_erase_bonds);
+    nrf_gpio_cfg_output(19);
+    nrf_gpio_pin_clear(19);
     
 }
 
@@ -525,6 +514,7 @@ int main(void)
 {
     uint32_t err_code;
     bool erase_bonds = true;
+    uint8_t str[] = "Hello, world!";
 
     // Initialize.
     timers_init();
@@ -535,15 +525,23 @@ int main(void)
     advertising_init();
     services_init();
     conn_params_init();
+    
+    ssd1306_init();
 
     // Start execution.
     application_timers_start();
     err_code = ble_advertising_start(BLE_ADV_MODE_FAST);
     APP_ERROR_CHECK(err_code);
 
+    ssd1306_draw5x7Font(0,0,str,13);
+    ssd1306_display();
+    //ssd1306_clearDisplay();
+    //ssd1306_display();
     // Enter main loop.
     for (;;)
     {
+        //uint8_t data = 0xFF;
+        //ssd1306_write_data(&data, 1);
         power_manage();
     }
 }
