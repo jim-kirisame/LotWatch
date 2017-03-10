@@ -335,7 +335,7 @@
               <MiscControls>--c99</MiscControls>
               <Define>BLE_STACK_SUPPORT_REQD S110 BOARD_PCA10028 SOFTDEVICE_PRESENT NRF51 SWI_DISABLE0</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\src;..\..\src\config;D:\Develop\SDK\nrf51_10.0.0\components\device;D:\Develop\SDK\nrf51_10.0.0\examples\bsp;D:\Develop\SDK\nrf51_10.0.0\components\toolchain;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_advertising;D:\Develop\SDK\nrf51_10.0.0\components\ble\common;D:\Develop\SDK\nrf51_10.0.0\components\ble\device_manager;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\common;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\delay;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\gpiote;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\config;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\hal;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\pstorage;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\uart;D:\Develop\SDK\nrf51_10.0.0\components\libraries\button;D:\Develop\SDK\nrf51_10.0.0\components\libraries\timer;D:\Develop\SDK\nrf51_10.0.0\components\libraries\trace;D:\Develop\SDK\nrf51_10.0.0\components\libraries\uart;D:\Develop\SDK\nrf51_10.0.0\components\libraries\util;D:\Develop\SDK\nrf51_10.0.0\components\libraries\hci;D:\Develop\SDK\nrf51_10.0.0\components\softdevice\common\softdevice_handler;D:\Develop\SDK\nrf51_10.0.0\components\softdevice\s110\headers;D:\Develop\SDK\nrf51_10.0.0\components\libraries\bootloader_dfu;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_services\ble_dfu;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_services\ble_bas;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\spi_master</IncludePath>
+              <IncludePath>..\..\src;..\..\src\config;D:\Develop\SDK\nrf51_10.0.0\components\device;D:\Develop\SDK\nrf51_10.0.0\examples\bsp;D:\Develop\SDK\nrf51_10.0.0\components\toolchain;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_advertising;D:\Develop\SDK\nrf51_10.0.0\components\ble\common;D:\Develop\SDK\nrf51_10.0.0\components\ble\device_manager;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\common;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\delay;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\gpiote;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\config;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\hal;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\pstorage;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\uart;D:\Develop\SDK\nrf51_10.0.0\components\libraries\button;D:\Develop\SDK\nrf51_10.0.0\components\libraries\timer;D:\Develop\SDK\nrf51_10.0.0\components\libraries\trace;D:\Develop\SDK\nrf51_10.0.0\components\libraries\uart;D:\Develop\SDK\nrf51_10.0.0\components\libraries\util;D:\Develop\SDK\nrf51_10.0.0\components\libraries\hci;D:\Develop\SDK\nrf51_10.0.0\components\softdevice\common\softdevice_handler;D:\Develop\SDK\nrf51_10.0.0\components\softdevice\s110\headers;D:\Develop\SDK\nrf51_10.0.0\components\libraries\bootloader_dfu;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_services\ble_dfu;D:\Develop\SDK\nrf51_10.0.0\components\ble\ble_services\ble_bas;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\spi_master;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\rtc;D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\clock</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -448,6 +448,26 @@
               <FileName>ssd1306_app.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\ssd1306_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>charge_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\charge_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>mma8452.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\mma8452.c</FilePath>
+            </File>
+            <File>
+              <FileName>temp_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\temp_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtc_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\rtc_app.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1213,6 +1233,21 @@
               <FileName>nrf_drv_spi.c</FileName>
               <FileType>1</FileType>
               <FilePath>D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\spi_master\nrf_drv_spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>twi_sw_master.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\twi_sw_master.c</FilePath>
+            </File>
+            <File>
+              <FileName>nrf_drv_rtc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\rtc\nrf_drv_rtc.c</FilePath>
+            </File>
+            <File>
+              <FileName>nrf_drv_clock.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\clock\nrf_drv_clock.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2095,6 +2130,26 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\ssd1306_app.c</FilePath>
             </File>
+            <File>
+              <FileName>charge_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\charge_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>mma8452.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\mma8452.c</FilePath>
+            </File>
+            <File>
+              <FileName>temp_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\temp_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtc_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\rtc_app.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2859,6 +2914,21 @@
               <FileName>nrf_drv_spi.c</FileName>
               <FileType>1</FileType>
               <FilePath>D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\spi_master\nrf_drv_spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>twi_sw_master.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\twi_sw_master.c</FilePath>
+            </File>
+            <File>
+              <FileName>nrf_drv_rtc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\rtc\nrf_drv_rtc.c</FilePath>
+            </File>
+            <File>
+              <FileName>nrf_drv_clock.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>D:\Develop\SDK\nrf51_10.0.0\components\drivers_nrf\clock\nrf_drv_clock.c</FilePath>
             </File>
           </Files>
         </Group>

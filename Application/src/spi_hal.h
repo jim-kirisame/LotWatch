@@ -63,7 +63,7 @@ void ssd1306_invertDisplay(_Bool i);
 void ssd1306_drawPixel(uint8_t x, uint8_t y, _Bool white);
 void ssd1306_init(void);
 void ssd1306_write_data(uint8_t * data, uint32_t len);
-void ssd1306_draw5x7Font(uint8_t x, uint8_t y, uint8_t * string, uint8_t len);
+void ssd1306_draw5x7Font(uint8_t x, uint8_t y, char * string);
 
 static const uint8_t font5x8[] =              // ASCII
 {

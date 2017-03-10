@@ -119,6 +119,7 @@ void ssd1306_spi_write(uint8_t * p_tx_data, uint16_t len, _Bool dc){
 void ssd1306_write_command(uint8_t command)
 {
     ssd1306_spi_write(&command, 1, false);
+    nrf_delay_ms(1);
 }
 
 void ssd1306_write_data(uint8_t * data, uint32_t len)
@@ -276,8 +277,8 @@ void ssd1306_display(void) {
     ssd1306_write_command(SSD1306_PAGEADDR);
     ssd1306_write_command(0); // Page start address (0 = reset)
     ssd1306_write_command(7); // Page end address
-    for(i=0;i<1024;i+=128){ 
-        ssd1306_write_data(&buffer[i], 128);
+    for(i=0;i<1024;i+=64){ 
+        ssd1306_write_data(&buffer[i], 64);
         nrf_delay_ms(1);
     }
     
@@ -288,15 +289,17 @@ void ssd1306_clearDisplay(void)
     memset(buffer, 0, 1024);
 }
 
-void ssd1306_draw5x7Font(uint8_t x, uint8_t y, uint8_t * string, uint8_t len){
+void ssd1306_draw5x7Font(uint8_t x, uint8_t y, char * string){
     int i,j;
     if(y > 8 || x > 128)
         return;
         
-    for(int i=0;i<len;i++)
+    for(int i=0;i<128;i++)
     {
+        if(!string[i]) //end of string
+            return;
         for(int j=0;j<5&&x<128&&string[i]>=0x20;j++)
-            buffer[x+++y*16] = font5x8[(string[i]-0x20)*5+j];
-        x++; //space
+            buffer[x+++y*128] = font5x8[(string[i]-0x20)*5+j];
+        buffer[x+++y*128] = 0x00; //space
     }
 }
