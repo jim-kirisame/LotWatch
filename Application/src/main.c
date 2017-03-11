@@ -542,8 +542,9 @@ int main(void)
     application_timers_start();
     err_code = ble_advertising_start(BLE_ADV_MODE_FAST);
     APP_ERROR_CHECK(err_code);
-        
-    ssd1306_draw5x7Font(0,0,str);
+    
+    ssd1306_clearDisplay();
+    //ssd1306_draw5x7Font(0,0,str);
     ssd1306_display();
     
     rtc_setTimeUnix(1489135933);
@@ -556,23 +557,19 @@ int main(void)
         
         mma8452_read_acc(&acc_data);
         
-        snprintf(str2, 24, "x: %d   ", acc_data.x);
-        ssd1306_draw5x7Font(0,4,str2);
-        snprintf(str2, 24, "y: %d   ", acc_data.y);
-        ssd1306_draw5x7Font(0,5,str2);
-        snprintf(str2, 24, "z: %d   ", acc_data.z);
-        ssd1306_draw5x7Font(0,6,str2);
+        snprintf(str2, 24, "%d, %d, %d         ", acc_data.x, acc_data.y, acc_data.z);
+        ssd1306_draw5x7Font(0,7,str2);
         
         temp_get();
         snprintf(str2, 24, "t: %.2f   ", temp_current_temp);
-        ssd1306_draw5x7Font(0,7,str2);
+        ssd1306_draw5x7Font(0,0,str2);
         
         date_t date;
         rtc_getTime(&date);
         
-        snprintf(str2, 24, "%d-%d-%d %d:%d:%d %d", date.year, date.month, date.day, date.hour, date.minute, date.second, date.week);
-        ssd1306_draw5x7Font(0,3,str2);
-        
+        snprintf(str2, 24, "%2d:%2d", date.hour, date.minute);
+        //ssd1306_draw5x7Font(0,3,str2);
+        ssd1306_draw48Font(str2);
         ssd1306_display();
         power_manage();
     }
