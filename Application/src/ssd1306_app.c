@@ -1,6 +1,6 @@
 #include "main.h"
 #include <string.h>
-#include "spi_hal.h"
+#include "ssd1306_app.h"
 #include "nrf_gpio.h"
 #include "app_error.h"
 #include "nrf_delay.h"
@@ -291,10 +291,9 @@ void ssd1306_clearDisplay(void)
 }
 
 void ssd1306_draw5x7Font(uint8_t x, uint8_t y, char * string){
-    int i,j;
     if(y > 8 || x > 128)
         return;
-        
+    
     for(int i=0;i<128;i++)
     {
         if(!string[i]) //end of string
@@ -321,6 +320,8 @@ void ssd1306_draw48Font(char * string)
     uint8_t x=7;
     uint8_t width[] = {24,13,24,24,24,24,24,24,24,24,9};
     uint8_t totalWidth=0;
+    
+    memset(&buffer[128],0,128*6);
     
     for(uint8_t i =0;i<128;i++){
         if(string[i] >= 0x30 && string[i] <= 0x3a){

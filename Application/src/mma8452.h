@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-#define INT_PIN 14
 #define SDA_PIN 15
 #define SCL_PIN 16
 

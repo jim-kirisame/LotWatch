@@ -31,7 +31,9 @@ void mma8452_i2c_read(uint8_t addr, uint8_t * buf, uint8_t buflen)
 void mma8452_chip_init(void){
     mma8452_i2c_write(0x0e, 0x00); //2g acc & no 
     mma8452_i2c_write(0x0f, 0x00); //Pulse_LPF_EN = 0
-    mma8452_i2c_write(0x2e, 0x30); //double tap and single tap on z-axis only
+    mma8452_i2c_write(0x21, 0x3F); //double tap and single tap on z-axis only
+    mma8452_i2c_write(0x23, 0x20); //Set Z Threshold to 32 counts or 2g
+    mma8452_i2c_write(0x24, 0x20); //Set Z Threshold to 32 counts or 2g
     mma8452_i2c_write(0x25, 0x20); //Set Z Threshold to 32 counts or 2g
     mma8452_i2c_write(0x26, 0x0c); //60ms / 5ms = 12 @50hz, Normal, Pulse_LPF_EN
     mma8452_i2c_write(0x27, 0x14); //200ms / 10ms = 20
@@ -39,6 +41,7 @@ void mma8452_chip_init(void){
     
     mma8452_i2c_write(0x2a, 0x30); //50hz, multibyte read, standby
     mma8452_i2c_write(0x2b, 0x00); //normal mode
+    //mma8452_i2c_write(0x2c, 0x02); //interrupt active high
     mma8452_i2c_write(0x2d, 0x08); //enable interrupt of tap detection
     mma8452_i2c_write(0x2e, 0x08); //set interrupt on INT1
     mma8452_i2c_write(0x2a, 0x31); //50hz, multibyte read, awake

@@ -44,12 +44,13 @@
 //#include "bsp_btn_ble.h"
 #include "dfu_app.h"
 #include "bas_app.h"
-#include "spi_hal.h"
+#include "ssd1306_app.h"
 #include "nrf_gpio.h"
 #include "charge_app.h"
 #include "mma8452.h"
 #include "temp_app.h"
 #include "rtc_app.h"
+#include "key_app.h"
 
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1 /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
@@ -64,13 +65,14 @@
 #define SLAVE_LATENCY 0                                    /**< Slave latency. */
 #define CONN_SUP_TIMEOUT MSEC_TO_UNITS(4000, UNIT_10_MS)   /**< Connection supervisory timeout (4 seconds). */
 
+#define SECURITY_REQUEST_DELAY         APP_TIMER_TICKS(4000, APP_TIMER_PRESCALER)  /**< Delay after connection until Security Request is sent, if necessary (ticks). */
 #define FIRST_CONN_PARAMS_UPDATE_DELAY APP_TIMER_TICKS(5000, APP_TIMER_PRESCALER) /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (5 seconds). */
 #define NEXT_CONN_PARAMS_UPDATE_DELAY APP_TIMER_TICKS(30000, APP_TIMER_PRESCALER) /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT 3                                            /**< Number of attempts before giving up the connection parameter negotiation. */
 
 #define SEC_PARAM_BOND 1                               /**< Perform bonding. */
-#define SEC_PARAM_MITM 0                               /**< Man In The Middle protection not required. */
-#define SEC_PARAM_IO_CAPABILITIES BLE_GAP_IO_CAPS_NONE /**< No I/O capabilities. */
+#define SEC_PARAM_MITM 1                               /**< Man In The Middle protection not required. */
+#define SEC_PARAM_IO_CAPABILITIES BLE_GAP_IO_CAPS_DISPLAY_ONLY /**< No I/O capabilities. */
 #define SEC_PARAM_OOB 0                                /**< Out Of Band data not available. */
 #define SEC_PARAM_MIN_KEY_SIZE 7                       /**< Minimum encryption key size. */
 #define SEC_PARAM_MAX_KEY_SIZE 16                      /**< Maximum encryption key size. */
@@ -86,8 +88,7 @@ static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUI
                                    {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}}; /**< Universally unique service identifiers. */
                                    
 STATIC_ASSERT(IS_SRVC_CHANGED_CHARACT_PRESENT);                                     /** When having DFU Service support in application the Service Changed Characteristic should always be present. */
-
-																	 
+                                
 																	 
 /**@brief Callback function for asserts in the SoftDevice.
  *
@@ -105,6 +106,7 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t *p_file_name)
     app_error_handler(DEAD_BEEF, line_num, p_file_name);
 }
 
+
 /**@brief Function for the Timer initialization.
  *
  * @details Initializes the timer module. This creates and starts application timers.
@@ -116,7 +118,7 @@ static void timers_init(void)
     APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
 
     // Create timers.
-		bas_timer_init();
+	bas_timer_init();
 }
 
 /**@brief Function for the GAP initialization.
@@ -150,6 +152,7 @@ static void gap_params_init(void)
 
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
     APP_ERROR_CHECK(err_code);
+
 }
 
 /**@brief Function for handling the YYY Service events. 
@@ -293,13 +296,34 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
     }
 }
 
+ void resp_pair_request(){
+
+    ble_gap_sec_params_t sec_params;
+    uint32_t                    err_code;
+
+    memset(&sec_params,0,sizeof(ble_gap_sec_params_t));
+    sec_params.bond = SEC_PARAM_BOND;
+    sec_params.io_caps = SEC_PARAM_IO_CAPABILITIES;
+    sec_params.max_key_size = 16;
+    sec_params.min_key_size = 7;
+    sec_params.oob = SEC_PARAM_OOB;
+    sec_params.mitm = SEC_PARAM_MITM;
+
+    err_code=sd_ble_gap_sec_params_reply(m_conn_handle,BLE_GAP_SEC_STATUS_SUCCESS,&sec_params,NULL);
+
+    APP_ERROR_CHECK(err_code);
+
+} 
+
+
 /**@brief Function for handling the Application's BLE Stack events.
  *
  * @param[in] p_ble_evt  Bluetooth stack event.
  */
 static void on_ble_evt(ble_evt_t *p_ble_evt)
 {
-    //uint32_t err_code;
+    uint32_t err_code;
+    char str2[8];
 
     switch (p_ble_evt->header.evt_id)
     {
@@ -313,6 +337,16 @@ static void on_ble_evt(ble_evt_t *p_ble_evt)
         m_conn_handle = BLE_CONN_HANDLE_INVALID;
         break;
 
+    case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
+        //resp_pair_request();
+        break; 
+    
+    case BLE_GAP_EVT_PASSKEY_DISPLAY:    
+        for(int i=0;i<6;i++)
+            snprintf(str2, 8, "%s%c", str2, p_ble_evt->evt.gap_evt.params.passkey_display.passkey[i]);
+        ssd1306_draw5x7Font(64,0,str2);
+        break;
+    
     default:
         // No implementation needed.
         break;
@@ -330,13 +364,10 @@ static void ble_evt_dispatch(ble_evt_t *p_ble_evt)
 {
     dm_ble_evt_handler(p_ble_evt);
     ble_conn_params_on_ble_evt(p_ble_evt);
-    //bsp_btn_ble_on_ble_evt(p_ble_evt);
     on_ble_evt(p_ble_evt);
     ble_advertising_on_ble_evt(p_ble_evt);
-
     dfu_ble_evt_dispatch(p_ble_evt);
-	
-		bas_ble_evt_dispatch(p_ble_evt);
+	bas_ble_evt_dispatch(p_ble_evt);
 }
 
 /**@brief Function for dispatching a system event to interested modules.
@@ -429,9 +460,6 @@ static uint32_t device_manager_evt_handler(dm_handle_t const *p_handle,
                                            ret_code_t event_result)
 {
     APP_ERROR_CHECK(event_result);
-
-    dfu_device_manager_event_handler(p_handle, p_event);
-
     return NRF_SUCCESS;
 }
 
@@ -512,13 +540,17 @@ static void power_manage(void)
     APP_ERROR_CHECK(err_code);
 }
 
+void key_evt(uint8_t pin)
+{
+    ssd1306_draw5x7Font(96,7,"2");
+}
+
 /**@brief Function for application main entry.
  */
 int main(void)
 {
     uint32_t err_code;
     bool erase_bonds = true;
-    char str[] = "Hello, world!";
     char str2[24];
     mma8452_acc_data acc_data;
 
@@ -537,11 +569,14 @@ int main(void)
     mma8452_init();
     temp_init();
     rtc_init();
+    key_init();
 
     // Start execution.
     application_timers_start();
     err_code = ble_advertising_start(BLE_ADV_MODE_FAST);
     APP_ERROR_CHECK(err_code);
+    
+    key_set_evt_handler(&key_evt);
     
     ssd1306_clearDisplay();
     //ssd1306_draw5x7Font(0,0,str);
@@ -567,7 +602,7 @@ int main(void)
         date_t date;
         rtc_getTime(&date);
         
-        snprintf(str2, 24, "%2d:%2d", date.hour, date.minute);
+        snprintf(str2, 24, "%02d:%02d", date.minute, date.second);
         //ssd1306_draw5x7Font(0,3,str2);
         ssd1306_draw48Font(str2);
         ssd1306_display();
