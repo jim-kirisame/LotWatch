@@ -34,29 +34,30 @@
 #include "ble_advdata.h"
 #include "ble_advertising.h"
 #include "ble_conn_params.h"
-//#include "boards.h"
 #include "softdevice_handler.h"
 #include "app_timer.h"
+#include "app_scheduler.h"
 #include "device_manager.h"
 #include "pstorage.h"
 #include "app_trace.h"
-//#include "bsp.h"
-//#include "bsp_btn_ble.h"
 #include "dfu_app.h"
 #include "bas_app.h"
+
 #include "ssd1306_app.h"
+#include "disp_app.h"
 #include "nrf_gpio.h"
 #include "charge_app.h"
 #include "mma8452.h"
 #include "temp_app.h"
 #include "rtc_app.h"
 #include "key_app.h"
+#include "app_page.h"
 
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1 /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
-#define DEVICE_NAME "Nordic_Template"           /**< Name of device. Will be included in the advertising data. */
-#define MANUFACTURER_NAME "NordicSemiconductor" /**< Manufacturer. Will be passed to Device Information Service. */
+#define DEVICE_NAME "LotWatch"           /**< Name of device. Will be included in the advertising data. */
+#define MANUFACTURER_NAME "Lotlab" /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL 300                    /**< The advertising interval (in units of 0.625 ms. This value corresponds to 25 ms). */
 #define APP_ADV_TIMEOUT_IN_SECONDS 180          /**< The advertising timeout in units of seconds. */
 
@@ -65,17 +66,24 @@
 #define SLAVE_LATENCY 0                                    /**< Slave latency. */
 #define CONN_SUP_TIMEOUT MSEC_TO_UNITS(4000, UNIT_10_MS)   /**< Connection supervisory timeout (4 seconds). */
 
+#define SCREEN_SAVER_INTERVAL_MS (APP_TIMER_TICKS(5000, APP_TIMER_PRESCALER))
 #define SECURITY_REQUEST_DELAY         APP_TIMER_TICKS(4000, APP_TIMER_PRESCALER)  /**< Delay after connection until Security Request is sent, if necessary (ticks). */
 #define FIRST_CONN_PARAMS_UPDATE_DELAY APP_TIMER_TICKS(5000, APP_TIMER_PRESCALER) /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (5 seconds). */
 #define NEXT_CONN_PARAMS_UPDATE_DELAY APP_TIMER_TICKS(30000, APP_TIMER_PRESCALER) /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT 3                                            /**< Number of attempts before giving up the connection parameter negotiation. */
 
 #define SEC_PARAM_BOND 1                               /**< Perform bonding. */
-#define SEC_PARAM_MITM 1                               /**< Man In The Middle protection not required. */
+#define SEC_PARAM_MITM 0                               /**< Man In The Middle protection not required. */
 #define SEC_PARAM_IO_CAPABILITIES BLE_GAP_IO_CAPS_DISPLAY_ONLY /**< No I/O capabilities. */
 #define SEC_PARAM_OOB 0                                /**< Out Of Band data not available. */
 #define SEC_PARAM_MIN_KEY_SIZE 7                       /**< Minimum encryption key size. */
 #define SEC_PARAM_MAX_KEY_SIZE 16                      /**< Maximum encryption key size. */
+
+/*****************************************************************************
+* add codes for enalbe app schedule
+******************************************************************************/
+#define SCHED_MAX_EVENT_DATA_SIZE       4                                              /**< Maximum size of scheduler events. Note that scheduler BLE stack events do not contain any data, as the events are being pulled from the stack in the event handler. */
+#define SCHED_QUEUE_SIZE                20                                          /**< Maximum number of events in the scheduler queue. */
 
 #define DEAD_BEEF 0xDEADBEEF /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
@@ -88,7 +96,9 @@ static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUI
                                    {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}}; /**< Universally unique service identifiers. */
                                    
 STATIC_ASSERT(IS_SRVC_CHANGED_CHARACT_PRESENT);                                     /** When having DFU Service support in application the Service Changed Characteristic should always be present. */
-                                
+
+static _Bool awake = true;           
+APP_TIMER_DEF(m_screen_saver_timer);             /**< Battery timer. */                                   
 																	 
 /**@brief Callback function for asserts in the SoftDevice.
  *
@@ -106,6 +116,17 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t *p_file_name)
     app_error_handler(DEAD_BEEF, line_num, p_file_name);
 }
 
+void screen_saver_appsh_handler(void *p_event_data, uint16_t event_size)
+{
+    awake = false;
+    ssd1306_displayOff();
+}
+
+void screen_saver(void *p_context){
+    UNUSED_PARAMETER(p_context);
+    if(!page_keep_awake)
+        app_sched_event_put(NULL, NULL, screen_saver_appsh_handler);
+}
 
 /**@brief Function for the Timer initialization.
  *
@@ -119,6 +140,11 @@ static void timers_init(void)
 
     // Create timers.
 	bas_timer_init();
+    
+    uint8_t err_code = app_timer_create(&m_screen_saver_timer,
+                                APP_TIMER_MODE_SINGLE_SHOT,
+                                screen_saver);
+    APP_ERROR_CHECK(err_code);
 }
 
 /**@brief Function for the GAP initialization.
@@ -155,37 +181,12 @@ static void gap_params_init(void)
 
 }
 
-/**@brief Function for handling the YYY Service events. 
- * YOUR_JOB implement a service handler function depending on the event the service you are using can generate
- *
- * @details This function will be called for all YY Service events which are passed to
- *          the application.
- *
- * @param[in]   p_yy_service   YY Service structure.
- * @param[in]   p_evt          Event received from the YY Service.
- *
- *
-static void on_yys_evt(ble_yy_service_t     * p_yy_service, 
-                       ble_yy_service_evt_t * p_evt)
-{
-    switch (p_evt->evt_type)
-    {
-        case BLE_YY_NAME_EVT_WRITE:
-            APPL_LOG("[APPL]: charact written with value %s. \r\n", p_evt->params.char_xx.value.p_str);
-            break;
-        
-        default:
-            // No implementation needed.
-            break;
-    }
-}*/
-
 /**@brief Function for initializing services that will be used by the application.
  */
 static void services_init(void)
 {
     dfu_serv_init(&m_app_handle);
-	  bas_app_init();
+	bas_app_init();
 }
 
 /**@brief Function for handling the Connection Parameters Module.
@@ -322,7 +323,7 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
  */
 static void on_ble_evt(ble_evt_t *p_ble_evt)
 {
-    uint32_t err_code;
+    //uint32_t err_code;
     char str2[8];
 
     switch (p_ble_evt->header.evt_id)
@@ -415,41 +416,6 @@ static void ble_stack_init(void)
     APP_ERROR_CHECK(err_code);
 }
 
-/**@brief Function for handling events from the BSP module.
- *
- * @param[in]   event   Event generated by button press.
- */
- /**
-void bsp_event_handler(bsp_event_t event)
-{
-    uint32_t err_code;
-    switch (event)
-    {
-    case BSP_EVENT_SLEEP:
-        sleep_mode_enter();
-        break;
-
-    case BSP_EVENT_DISCONNECT:
-        err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-        if (err_code != NRF_ERROR_INVALID_STATE)
-        {
-            APP_ERROR_CHECK(err_code);
-        }
-        break;
-
-    case BSP_EVENT_WHITELIST_OFF:
-        err_code = ble_advertising_restart_without_whitelist();
-        if (err_code != NRF_ERROR_INVALID_STATE)
-        {
-            APP_ERROR_CHECK(err_code);
-        }
-        break;
-
-    default:
-        break;
-    }
-}
-**/
 
 /**@brief Function for handling the Device Manager events.
  *
@@ -528,8 +494,6 @@ static void advertising_init(void)
 static void buttons_leds_init(bool *p_erase_bonds)
 {
 	UNUSED_PARAMETER(p_erase_bonds);
-
-    
 }
 
 /**@brief Function for the Power manager.
@@ -540,9 +504,51 @@ static void power_manage(void)
     APP_ERROR_CHECK(err_code);
 }
 
+static void scheduler_init(void)
+{
+    APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
+}
+
 void key_evt(uint8_t pin)
 {
-    ssd1306_draw5x7Font(96,7,"2");
+    if(awake){
+        switch((enum key_evt_type)pin)
+        {
+        case TAP_ONCE_EVENT:
+        case TAP_TWICE_EVENT:
+        case TOUCH_KEY_EVENT:    
+            switch(current_screen){
+                case CLOCK_PAGE:
+                    current_screen = DEBUG_PAGE;
+                    break;
+                case DEBUG_PAGE:
+                    current_screen = CLOCK_PAGE;
+                    break;
+                default:
+                    current_screen = CLOCK_PAGE;
+                    break;
+            }
+            break;
+            default: 
+                break;
+        }
+        app_timer_stop(m_screen_saver_timer);
+        app_timer_start(m_screen_saver_timer, SCREEN_SAVER_INTERVAL_MS, NULL);
+        
+        page_disp_current();
+
+    }
+    else
+    {
+        awake = true;
+        current_screen = CLOCK_PAGE;
+        page_disp_current();
+        ssd1306_displayOn();
+        app_timer_start(m_screen_saver_timer, SCREEN_SAVER_INTERVAL_MS, NULL);
+        
+    }
+
+    //ssd1306_display();
 }
 
 /**@brief Function for application main entry.
@@ -551,11 +557,12 @@ int main(void)
 {
     uint32_t err_code;
     bool erase_bonds = true;
-    char str2[24];
-    mma8452_acc_data acc_data;
 
     // Initialize.
     timers_init();
+    scheduler_init();
+    
+    
     buttons_leds_init(&erase_bonds);
     ble_stack_init();
     device_manager_init(erase_bonds);
@@ -565,47 +572,32 @@ int main(void)
     conn_params_init();
     
     ssd1306_init();
-    charge_init();
     mma8452_init();
+    
+    charge_init();
     temp_init();
+    
     rtc_init();
     key_init();
+     
+    key_set_evt_handler(&key_evt);
 
     // Start execution.
     application_timers_start();
     err_code = ble_advertising_start(BLE_ADV_MODE_FAST);
     APP_ERROR_CHECK(err_code);
-    
-    key_set_evt_handler(&key_evt);
-    
-    ssd1306_clearDisplay();
-    //ssd1306_draw5x7Font(0,0,str);
-    ssd1306_display();
-    
-    rtc_setTimeUnix(1489135933);
+
+    rtc_setTimeUnix(1489314770);
     
     // Enter main loop.
     for (;;)
     {
-        //uint8_t data = 0xFF;
-        //ssd1306_write_data(&data, 1);
-        
-        mma8452_read_acc(&acc_data);
-        
-        snprintf(str2, 24, "%d, %d, %d         ", acc_data.x, acc_data.y, acc_data.z);
-        ssd1306_draw5x7Font(0,7,str2);
-        
-        temp_get();
-        snprintf(str2, 24, "t: %.2f   ", temp_current_temp);
-        ssd1306_draw5x7Font(0,0,str2);
-        
-        date_t date;
-        rtc_getTime(&date);
-        
-        snprintf(str2, 24, "%02d:%02d", date.minute, date.second);
-        //ssd1306_draw5x7Font(0,3,str2);
-        ssd1306_draw48Font(str2);
-        ssd1306_display();
+        if(page_should_render_every_frame){
+            page_disp_current();
+        }
+        if(awake)
+            ssd1306_display();
+        app_sched_execute();
         power_manage();
     }
 }

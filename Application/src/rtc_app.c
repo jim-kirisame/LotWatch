@@ -6,6 +6,8 @@
 #include "nrf_drv_rtc.h"
 #include "nrf_drv_clock.h"
 
+#include <string.h>
+
 #define COMPARE_COUNTERTIME  (3UL)                                        /**< Get Compare event COMPARE_TIME seconds after the counter starts from 0. */
 #define RTC_TIMER_INTERVAL_MS (APP_TIMER_TICKS(1000, APP_TIMER_PRESCALER))
 APP_TIMER_DEF(m_rtc_timer);             /**< rtc timer. */
@@ -13,6 +15,7 @@ APP_TIMER_DEF(m_rtc_timer);             /**< rtc timer. */
 uint32_t rtc_localts;
 
 static const uint8_t rtc_dayOfMonthTable[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+static const char rtc_weekStrTable[][4] = {"SUN", "MON", "TUE", "WED", "THR", "FRI", "SAT"};
 const nrf_drv_rtc_t rtc = NRF_DRV_RTC_INSTANCE(0); /**< Declaring an instance of nrf_drv_rtc for RTC0. */
 
 void rtc_add1s(void)
@@ -22,7 +25,7 @@ void rtc_add1s(void)
 
 /** @brief: Function for handling the RTC0 interrupts.
  * Triggered on TICK and COMPARE0 match.
- */
+
 static void rtc_handler(nrf_drv_rtc_int_type_t int_type)
 {
     if (int_type == NRF_DRV_RTC_INT_TICK)
@@ -30,10 +33,19 @@ static void rtc_handler(nrf_drv_rtc_int_type_t int_type)
         rtc_add1s();
     }
 }
+ */
+
+void rtc_timer_appsh_handler(void * p_event_data, uint16_t event_size)
+{
+    UNUSED_PARAMETER(p_event_data);
+    UNUSED_PARAMETER(event_size);
+    rtc_add1s();
+}
 
 void rtc_timer_handler(void *p_context){
     UNUSED_PARAMETER(p_context);
-    rtc_add1s();
+    
+    app_sched_event_put(NULL, NULL, rtc_timer_appsh_handler);
 }
 
 void rtc_init()
@@ -88,6 +100,11 @@ void rtc_setTimeLocal(uint32_t localts)
 uint32_t rtc_getTimeLocal(void)
 {
     return rtc_localts;
+}
+
+void rtc_getWeekStr(char * string, uint8_t week)
+{
+    memcpy(string, rtc_weekStrTable[week], 4);
 }
 
 uint8_t rtc_getDayOfMonth(uint16_t year, uint8_t month)

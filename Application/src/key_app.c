@@ -3,12 +3,64 @@
 #include "nrf_gpiote.h"
 #include "nrf_drv_gpiote.h"
 #include "app_error.h"
+#include "mma8452.h"
 
-void (* press_evt_handler)(uint8_t pin);
+_Bool charge_charging;
+_Bool charge_fulled;
+
+void (* press_evt_handler)(uint8_t);
+
+void key_appsh_evt_handler(void *p_event_data, uint16_t event_size)
+{
+    //if(sizeof(p_event_data)!= event_size)
+    //    return;
+    uint8_t * temp = (uint8_t * )p_event_data;
+    (*press_evt_handler)(*temp);
+}
 
 void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
-    (*press_evt_handler)(pin);
+    enum key_evt_type event;
+    switch(pin){
+        case INT_PIN:
+            if(mma8452_read_isDoubleTap())
+                event = TAP_TWICE_EVENT;
+            else
+                event = TAP_ONCE_EVENT;
+            break;
+        case KEY_PIN:
+            event = TOUCH_KEY_EVENT;
+            break;
+        case CHRG_PIN:
+            if(action == NRF_GPIOTE_POLARITY_HITOLO)
+            {
+                event = CHARGING_EVENT;
+                charge_charging = true;
+            }
+            else
+            {
+                event = NOT_CHARGING_EVENT;
+                charge_charging = false;
+            }
+            break;
+        case STDBY_PIN:
+            if(action == NRF_GPIOTE_POLARITY_HITOLO)
+            {
+                event = FULLED_EVENT;
+                charge_fulled = true;
+            }
+            else
+            {
+                event = NOT_FULLED_EVENT;
+                charge_fulled = false;
+            }
+            break;
+        default:
+            break;
+    }
+    
+    
+    app_sched_event_put(&event, sizeof(event), key_appsh_evt_handler);
 }
 
 void key_set_evt_handler(void (*evt)(uint8_t))

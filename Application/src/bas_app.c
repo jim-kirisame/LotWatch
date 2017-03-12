@@ -5,10 +5,10 @@
 #include "app_timer.h"
 #include "ble_bas.h"
 #include "nrf_adc.h"
-#include "charge_app.h"
+#include "key_app.h"
 
 ble_bas_t m_bas;                                    /**< Structure used to identify the battery service. */
-uint16_t currVot;                                   /**< Current Vottage of battery. */
+uint32_t currVot;                                   /**< Current Vottage of battery. */
 
 APP_TIMER_DEF(m_battery_timer_meas_id);             /**< Battery timer. */
 
@@ -56,7 +56,7 @@ uint16_t adc2vottage(int32_t adcResult){
     // Vmes = Vreal * 2.2M / (10M + 2.2M)
     // result = Vmes / Vref * BATTERY_ADC_DIV
     // 22/122约等于2/11
-    return (uint16_t)(adcResult * ADC_REF_VOLTAGE_IN_MILLIVOLTS * 11 << 11);
+    return (uint32_t)(adcResult * ADC_REF_VOLTAGE_IN_MILLIVOLTS * 11 >> 11);
 }
 /** ADC测量完毕*/
 void ADC_IRQHandler(){

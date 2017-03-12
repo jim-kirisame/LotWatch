@@ -20,5 +20,6 @@ void rtc_init(void);
 void rtc_setTime(date_t * date);
 void rtc_getTime(date_t * date);
 void rtc_setTimeUnix(uint32_t unixts);
+void rtc_getWeekStr(char * string, uint8_t week);
 
 #endif

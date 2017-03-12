@@ -97,7 +97,10 @@ static void reset_prepare(void)
     err_code = ble_conn_params_stop();
     APP_ERROR_CHECK(err_code);
 
+    NRF_POWER->GPREGRET = BOOTLOADER_DFU_START;
+    
     nrf_delay_ms(500);
+    
 }
 
 void dfu_serv_init(dm_application_instance_t * m_app_handle){

@@ -17,5 +17,6 @@ typedef struct mma8452_acc_data{
 void mma8452_init(void);
 _Bool mma8452_chip_test(void);
 void mma8452_read_acc(mma8452_acc_data * data);
+_Bool mma8452_read_isDoubleTap(void);
 
 #endif
