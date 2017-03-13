@@ -77,5 +77,5 @@ _Bool mma8452_read_isDoubleTap(void)
 {
     uint8_t buf[1];
     mma8452_i2c_read(0x22, buf, 1);
-    return buf[0] & 0x80 == 0x80;
+    return (buf[0] & 0x80) == 0x80;
 }

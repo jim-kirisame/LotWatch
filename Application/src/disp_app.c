@@ -2,6 +2,7 @@
 #include "ssd1306_app.h"
 #include "disp_app.h"
 #include "Font.h"
+#include "Font16_handwrite.h"
 #include <string.h>
 
 void ssd1306_draw5x7Font(uint8_t x, uint8_t y, char * string){
@@ -93,6 +94,91 @@ void ssd1306_draw48Font(char * string)
             case 0x3a:
                 ssd1306_draw48FontInner((uint8_t *)&image_data_Font_0x3a[0],9,x);
                 x+=9;
+                break;
+            case 0x00:
+                return;
+            default:
+                break;
+            
+        }
+        
+    }
+}
+
+void ssd1306_draw16FontInner(uint8_t *data, uint8_t w, uint8_t x, uint8_t y)
+{
+    uint8_t i,j;
+    
+    for(i=y; i<7 && i<=y+1 ;i++){
+        for(j=0;j<w;j++){
+            buffer[j+x+i*128] = *data++;
+        }
+    }
+}
+
+void ssd1306_draw16Font(char * string, uint8_t x, uint8_t y)
+{
+    for(uint8_t i =0;i<128;i++){
+        switch(string[i]){
+            case 0x25:
+                ssd1306_draw16FontInner((uint8_t *)&image_data_Font16_0x25[0],9,x,y);
+                x+=9;
+                break;
+            case 0x2d:
+                ssd1306_draw16FontInner((uint8_t *)&image_data_Font16_0x2d[0],9,x,y);
+                x+=9;
+                break;
+            case 0x2e:
+                ssd1306_draw16FontInner((uint8_t *)&image_data_Font16_0x2e[0],9,x,y);
+                x+=9;
+                break;
+            case 0x30:
+                ssd1306_draw16FontInner((uint8_t *)&image_data_Font16_0x30[0],9,x,y);
+                x+=9;
+                break;
+            case 0x31:
+                ssd1306_draw16FontInner((uint8_t *)&image_data_Font16_0x31[0],9,x,y);
+                x+=9;
+                break;
+            case 0x32:
+                ssd1306_draw16FontInner((uint8_t *)&image_data_Font16_0x32[0],9,x,y);
+                x+=9;
+                break;
+            case 0x33:
+                ssd1306_draw16FontInner((uint8_t *)&image_data_Font16_0x33[0],9,x,y);
+                x+=9;
+                break;
+            case 0x34:
+                ssd1306_draw16FontInner((uint8_t *)&image_data_Font16_0x34[0],9,x,y);
+                x+=9;
+                break;
+            case 0x35:
+                ssd1306_draw16FontInner((uint8_t *)&image_data_Font16_0x35[0],9,x,y);
+                x+=9;
+                break;
+            case 0x36:
+                ssd1306_draw16FontInner((uint8_t *)&image_data_Font16_0x36[0],9,x,y);
+                x+=9;
+                break;
+            case 0x37:
+                ssd1306_draw16FontInner((uint8_t *)&image_data_Font16_0x37[0],9,x,y);
+                x+=9;
+                break;
+            case 0x38:
+                ssd1306_draw16FontInner((uint8_t *)&image_data_Font16_0x38[0],9,x,y);
+                x+=9;
+                break;
+            case 0x39:
+                ssd1306_draw16FontInner((uint8_t *)&image_data_Font16_0x39[0],9,x,y);
+                x+=9;
+                break;
+            case 0x3a:
+                ssd1306_draw16FontInner((uint8_t *)&image_data_Font16_0x3a[0],9,x,y);
+                x+=9;
+                break;
+            case 0x3f:
+                ssd1306_draw16FontInner((uint8_t *)&image_data_Font16_0x3f[0],18,x,y);
+                x+=18;
                 break;
             case 0x00:
                 return;

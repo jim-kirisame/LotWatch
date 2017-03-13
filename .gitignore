@@ -2,3 +2,4 @@ JLinkLog.txt
 *.uvguix.*
 _build/*.*
 _build
+EventRecorderStub.scvd

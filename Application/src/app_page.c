@@ -45,7 +45,7 @@ void page_disp_debug_page(void)
     mma8452_read_acc(&acc_data);
     temp_get();
     
-        ssd1306_clearDisplay();
+    ssd1306_clearDisplay();
     
     snprintf(str2, 24, "acc_x: %d", acc_data.x);
     ssd1306_draw5x7Font(0,1,str2);
@@ -61,6 +61,12 @@ void page_disp_debug_page(void)
     ssd1306_draw5x7Font(0,6,str2);
 }
 
+void page_disp_pass_page()
+{
+    ssd1306_clearDisplay();
+    ssd1306_draw16Font(str_passcode,37,3);
+}
+
 void page_disp_current()
 {
     switch(current_screen){
@@ -74,6 +80,10 @@ void page_disp_current()
             page_should_render_every_frame = true;
             page_keep_awake = true;
             break;
+        case CONN_PASS_PAGE:
+            page_disp_pass_page();
+            page_should_render_every_frame = false;
+            page_keep_awake = false;
         default:
             page_should_render_every_frame = false;
             page_keep_awake = false;

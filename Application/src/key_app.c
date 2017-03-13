@@ -68,6 +68,11 @@ void key_set_evt_handler(void (*evt)(uint8_t))
     press_evt_handler = evt;
 }
 
+void key_generate_evt(enum key_evt_type event)
+{
+    app_sched_event_put(&event, sizeof(event), key_appsh_evt_handler);
+}
+
 void key_init(void)
 {
     ret_code_t err_code;

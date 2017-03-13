@@ -41,6 +41,9 @@
 #include "device_manager.h"
 #include "pstorage.h"
 #include "app_trace.h"
+
+#include "ble_nus.h"
+
 #include "dfu_app.h"
 #include "bas_app.h"
 
@@ -61,6 +64,8 @@
 #define APP_ADV_INTERVAL 300                    /**< The advertising interval (in units of 0.625 ms. This value corresponds to 25 ms). */
 #define APP_ADV_TIMEOUT_IN_SECONDS 180          /**< The advertising timeout in units of seconds. */
 
+#define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
+
 #define MIN_CONN_INTERVAL MSEC_TO_UNITS(100, UNIT_1_25_MS) /**< Minimum acceptable connection interval (0.1 seconds). */
 #define MAX_CONN_INTERVAL MSEC_TO_UNITS(200, UNIT_1_25_MS) /**< Maximum acceptable connection interval (0.2 second). */
 #define SLAVE_LATENCY 0                                    /**< Slave latency. */
@@ -72,8 +77,9 @@
 #define NEXT_CONN_PARAMS_UPDATE_DELAY APP_TIMER_TICKS(30000, APP_TIMER_PRESCALER) /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT 3                                            /**< Number of attempts before giving up the connection parameter negotiation. */
 
+#define SEC_PARAM_TIMEOUT                 30                                                /**< Timeout for Pairing Request or Security Request (in seconds). */
 #define SEC_PARAM_BOND 1                               /**< Perform bonding. */
-#define SEC_PARAM_MITM 0                               /**< Man In The Middle protection not required. */
+#define SEC_PARAM_MITM 1                               /**< Man In The Middle protection not required. */
 #define SEC_PARAM_IO_CAPABILITIES BLE_GAP_IO_CAPS_DISPLAY_ONLY /**< No I/O capabilities. */
 #define SEC_PARAM_OOB 0                                /**< Out Of Band data not available. */
 #define SEC_PARAM_MIN_KEY_SIZE 7                       /**< Minimum encryption key size. */
@@ -93,13 +99,35 @@ uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID; /**< Handle of the current con
 
 static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE},
                                    {BLE_UUID_BATTERY_SERVICE,            BLE_UUID_TYPE_BLE},
-                                   {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}}; /**< Universally unique service identifiers. */
+                                   {BLE_UUID_NUS_SERVICE,                BLE_UUID_TYPE_BLE}}; /**< Universally unique service identifiers. */
                                    
-STATIC_ASSERT(IS_SRVC_CHANGED_CHARACT_PRESENT);                                     /** When having DFU Service support in application the Service Changed Characteristic should always be present. */
+STATIC_ASSERT(IS_SRVC_CHANGED_CHARACT_PRESENT);                                     /** When having DFU Service support in application the Service Changed Characteristic should always be present. */  
+APP_TIMER_DEF(m_screen_saver_timer);             /**< Battery timer. */          
 
-static _Bool awake = true;           
-APP_TIMER_DEF(m_screen_saver_timer);             /**< Battery timer. */                                   
-																	 
+static ble_nus_t                        m_nus;                                      /**< Structure to identify the Nordic UART Service. */
+char str_passcode[7] = "";
+static _Bool awake = true;                                    
+                                   
+void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name)
+{
+    // This call can be used for debug purposes during application development.
+    // @note CAUTION: Activating this code will write the stack to flash on an error.
+    //                This function should NOT be used in a final product.
+    //                It is intended STRICTLY for development/debugging purposes.
+    //                The flash write will happen EVEN if the radio is active, thus interrupting
+    //                any communication.
+    //                Use with care. Un-comment the line below to use.
+    //ble_debug_assert_handler(error_code, line_num, p_file_name);
+
+    // On assert, the system can only recover with a reset.
+    char str2[8];
+    snprintf(str2, 8, "%x", error_code);
+    ssd1306_draw5x7Font(64,0,str2);
+    //ssd1306_display();
+    
+    NVIC_SystemReset();
+}
+                                   
 /**@brief Callback function for asserts in the SoftDevice.
  *
  * @details This function will be called in case of an assert in the SoftDevice.
@@ -114,11 +142,6 @@ APP_TIMER_DEF(m_screen_saver_timer);             /**< Battery timer. */
 void assert_nrf_callback(uint16_t line_num, const uint8_t *p_file_name)
 {
     app_error_handler(DEAD_BEEF, line_num, p_file_name);
-}
-
-void screen_saver_appsh_handler(void *p_event_data, uint16_t event_size)
-{
-    
 }
 
 void screen_saver(void *p_context){
@@ -137,11 +160,8 @@ void screen_saver(void *p_context){
  */
 static void timers_init(void)
 {
-
     // Initialize timer module.
     APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, true);
-
-
 }
 
 static void timers_create(void)
@@ -173,10 +193,6 @@ static void gap_params_init(void)
                                           strlen(DEVICE_NAME));
     APP_ERROR_CHECK(err_code);
 
-    /* YOUR_JOB: Use an appearance value matching the application's use case.
-    err_code = sd_ble_gap_appearance_set(BLE_APPEARANCE_);
-    APP_ERROR_CHECK(err_code); */
-
     memset(&gap_conn_params, 0, sizeof(gap_conn_params));
 
     gap_conn_params.min_conn_interval = MIN_CONN_INTERVAL;
@@ -188,6 +204,36 @@ static void gap_params_init(void)
     APP_ERROR_CHECK(err_code);
 
 }
+/**@snippet [Handling the data received over UART] */
+
+/**@brief Function for handling the data from the Nordic UART Service.
+ *
+ * @details This function will process the data received from the Nordic UART BLE Service and send
+ *          it to the UART module.
+ *
+ * @param[in] p_nus    Nordic UART Service structure.
+ * @param[in] p_data   Data to be send to UART module.
+ * @param[in] length   Length of the data.
+ */
+/**@snippet [Handling the data received over BLE] */
+static void nus_data_handler(ble_nus_t * p_nus, uint8_t * p_data, uint16_t length)
+{
+    //DO SOMETHING
+}
+/**@snippet [Handling the data received over BLE] */
+
+static void nus_init(void)
+{
+    uint32_t       err_code;
+    ble_nus_init_t nus_init;
+    
+    memset(&nus_init, 0, sizeof(nus_init));
+
+    nus_init.data_handler = nus_data_handler;
+    
+    err_code = ble_nus_init(&m_nus, &nus_init);
+    APP_ERROR_CHECK(err_code);
+}
 
 /**@brief Function for initializing services that will be used by the application.
  */
@@ -195,6 +241,7 @@ static void services_init(void)
 {
     dfu_serv_init(&m_app_handle);
 	bas_app_init();
+    nus_init();
 }
 
 /**@brief Function for handling the Connection Parameters Module.
@@ -298,32 +345,12 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
         //APP_ERROR_CHECK(err_code);
         break;
     case BLE_ADV_EVT_IDLE:
-        sleep_mode_enter();
+        //sleep_mode_enter();
         break;
     default:
         break;
     }
 }
-
- void resp_pair_request(){
-
-    ble_gap_sec_params_t sec_params;
-    uint32_t                    err_code;
-
-    memset(&sec_params,0,sizeof(ble_gap_sec_params_t));
-    sec_params.bond = SEC_PARAM_BOND;
-    sec_params.io_caps = SEC_PARAM_IO_CAPABILITIES;
-    sec_params.max_key_size = 16;
-    sec_params.min_key_size = 7;
-    sec_params.oob = SEC_PARAM_OOB;
-    sec_params.mitm = SEC_PARAM_MITM;
-
-    err_code=sd_ble_gap_sec_params_reply(m_conn_handle,BLE_GAP_SEC_STATUS_SUCCESS,&sec_params,NULL);
-
-    APP_ERROR_CHECK(err_code);
-
-} 
-
 
 /**@brief Function for handling the Application's BLE Stack events.
  *
@@ -332,7 +359,7 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
 static void on_ble_evt(ble_evt_t *p_ble_evt)
 {
     //uint32_t err_code;
-    char str2[8];
+    char str2[8] = {0};
 
     switch (p_ble_evt->header.evt_id)
     {
@@ -345,15 +372,12 @@ static void on_ble_evt(ble_evt_t *p_ble_evt)
     case BLE_GAP_EVT_DISCONNECTED:
         m_conn_handle = BLE_CONN_HANDLE_INVALID;
         break;
-
-    case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
-        //resp_pair_request();
-        break; 
     
     case BLE_GAP_EVT_PASSKEY_DISPLAY:    
         for(int i=0;i<6;i++)
             snprintf(str2, 8, "%s%c", str2, p_ble_evt->evt.gap_evt.params.passkey_display.passkey[i]);
-        ssd1306_draw5x7Font(64,0,str2);
+        snprintf(str_passcode, 7, "%s", str2);
+        key_generate_evt(PASSCODE_DISP_EVENT);
         break;
     
     default:
@@ -373,6 +397,7 @@ static void ble_evt_dispatch(ble_evt_t *p_ble_evt)
 {
     dm_ble_evt_handler(p_ble_evt);
     ble_conn_params_on_ble_evt(p_ble_evt);
+    ble_nus_on_ble_evt(&m_nus, p_ble_evt);
     on_ble_evt(p_ble_evt);
     ble_advertising_on_ble_evt(p_ble_evt);
     dfu_ble_evt_dispatch(p_ble_evt);
@@ -537,7 +562,11 @@ void key_evt(uint8_t pin)
                     break;
             }
             break;
-            default: 
+                case PASSCODE_DISP_EVENT:
+                    current_screen = CONN_PASS_PAGE;
+                    break;
+                    
+        default: 
                 break;
         }
         app_timer_stop(m_screen_saver_timer);
@@ -549,7 +578,17 @@ void key_evt(uint8_t pin)
     else
     {
         awake = true;
-        current_screen = CLOCK_PAGE;
+        switch((enum key_evt_type)pin)
+        {
+            case PASSCODE_DISP_EVENT:
+                current_screen = CONN_PASS_PAGE;
+            break;
+                    
+            default: 
+                current_screen = CLOCK_PAGE;
+                break;
+
+        }
         page_disp_current();
         ssd1306_displayOn();
         app_timer_start(m_screen_saver_timer, SCREEN_SAVER_INTERVAL_MS, NULL);
