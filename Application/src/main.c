@@ -36,6 +36,7 @@
 #include "ble_conn_params.h"
 #include "softdevice_handler.h"
 #include "app_timer.h"
+#include "app_timer_appsh.h"
 #include "app_scheduler.h"
 #include "device_manager.h"
 #include "pstorage.h"
@@ -46,7 +47,6 @@
 #include "ssd1306_app.h"
 #include "disp_app.h"
 #include "nrf_gpio.h"
-#include "charge_app.h"
 #include "mma8452.h"
 #include "temp_app.h"
 #include "rtc_app.h"
@@ -82,7 +82,7 @@
 /*****************************************************************************
 * add codes for enalbe app schedule
 ******************************************************************************/
-#define SCHED_MAX_EVENT_DATA_SIZE       4                                              /**< Maximum size of scheduler events. Note that scheduler BLE stack events do not contain any data, as the events are being pulled from the stack in the event handler. */
+#define SCHED_MAX_EVENT_DATA_SIZE       8                                              /**< Maximum size of scheduler events. Note that scheduler BLE stack events do not contain any data, as the events are being pulled from the stack in the event handler. */
 #define SCHED_QUEUE_SIZE                20                                          /**< Maximum number of events in the scheduler queue. */
 
 #define DEAD_BEEF 0xDEADBEEF /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
@@ -118,14 +118,17 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t *p_file_name)
 
 void screen_saver_appsh_handler(void *p_event_data, uint16_t event_size)
 {
-    awake = false;
-    ssd1306_displayOff();
+    
 }
 
 void screen_saver(void *p_context){
     UNUSED_PARAMETER(p_context);
     if(!page_keep_awake)
-        app_sched_event_put(NULL, NULL, screen_saver_appsh_handler);
+    {
+        awake = false;
+        ssd1306_displayOff();
+    }
+        //app_sched_event_put(NULL, NULL, screen_saver_appsh_handler);
 }
 
 /**@brief Function for the Timer initialization.
@@ -136,8 +139,13 @@ static void timers_init(void)
 {
 
     // Initialize timer module.
-    APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
+    APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, true);
 
+
+}
+
+static void timers_create(void)
+{
     // Create timers.
 	bas_timer_init();
     
@@ -562,6 +570,7 @@ int main(void)
     timers_init();
     scheduler_init();
     
+    timers_create();
     
     buttons_leds_init(&erase_bonds);
     ble_stack_init();
@@ -574,7 +583,6 @@ int main(void)
     ssd1306_init();
     mma8452_init();
     
-    charge_init();
     temp_init();
     
     rtc_init();

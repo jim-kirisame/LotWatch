@@ -58,16 +58,22 @@ uint16_t adc2vottage(int32_t adcResult){
     // 22/122约等于2/11
     return (uint32_t)(adcResult * ADC_REF_VOLTAGE_IN_MILLIVOLTS * 11 >> 11);
 }
+void ADC_appsh_mes_evt_handler(void *p_event_data, uint16_t event_size)
+{
+    UNUSED_PARAMETER(p_event_data);
+    UNUSED_PARAMETER(event_size);
+    currVot = adc2vottage(nrf_adc_result_get());
+    bas_update_measure_data();
+}
 /** ADC测量完毕*/
 void ADC_IRQHandler(){
     nrf_adc_conversion_event_clean();
-    currVot = adc2vottage(nrf_adc_result_get());
-    bas_update_measure_data();
+    app_sched_event_put(NULL, NULL, ADC_appsh_mes_evt_handler);
 }
 /** ADC测量时钟*/
 void bas_measure_timer_handler(void *p_context){
     UNUSED_PARAMETER(p_context);
-    nrf_adc_start();
+        nrf_adc_start();
 }
 /** 初始化电量服务 */
 void bas_app_init(){

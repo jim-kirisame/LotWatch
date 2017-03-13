@@ -35,17 +35,10 @@ static void rtc_handler(nrf_drv_rtc_int_type_t int_type)
 }
  */
 
-void rtc_timer_appsh_handler(void * p_event_data, uint16_t event_size)
-{
-    UNUSED_PARAMETER(p_event_data);
-    UNUSED_PARAMETER(event_size);
-    rtc_add1s();
-}
 
 void rtc_timer_handler(void *p_context){
     UNUSED_PARAMETER(p_context);
-    
-    app_sched_event_put(NULL, NULL, rtc_timer_appsh_handler);
+    rtc_add1s();
 }
 
 void rtc_init()
