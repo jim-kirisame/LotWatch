@@ -345,7 +345,7 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
         //APP_ERROR_CHECK(err_code);
         break;
     case BLE_ADV_EVT_IDLE:
-        //sleep_mode_enter();
+        sleep_mode_enter();
         break;
     default:
         break;
@@ -458,8 +458,19 @@ static uint32_t device_manager_evt_handler(dm_handle_t const *p_handle,
                                            dm_event_t const *p_event,
                                            ret_code_t event_result)
 {
-    APP_ERROR_CHECK(event_result);
-    return NRF_SUCCESS;
+    uint32_t err_code;
+    switch (event_result)
+    {
+        case BLE_GAP_SEC_STATUS_PASSKEY_ENTRY_FAILED: //handle passkey pairing fail event
+        {
+            err_code = sd_ble_gap_disconnect(m_conn_handle , BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+            APP_ERROR_CHECK(err_code);
+            return NRF_SUCCESS;
+        }
+        default:
+            APP_ERROR_CHECK(event_result);
+            return NRF_SUCCESS;
+    }
 }
 
 /**@brief Function for the Device Manager initialization.
