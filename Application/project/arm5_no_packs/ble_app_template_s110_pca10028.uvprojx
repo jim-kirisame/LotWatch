@@ -484,6 +484,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\disp_app.c</FilePath>
             </File>
+            <File>
+              <FileName>comm_protocol.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\comm_protocol.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1158,6 +1163,11 @@
               <FileName>app_timer_appsh.c</FileName>
               <FileType>1</FileType>
               <FilePath>D:\Develop\SDK\nrf51_10.0.0\components\libraries\timer\app_timer_appsh.c</FilePath>
+            </File>
+            <File>
+              <FileName>crc16.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\crc16.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2080,6 +2090,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\disp_app.c</FilePath>
             </File>
+            <File>
+              <FileName>comm_protocol.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\comm_protocol.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2754,6 +2769,11 @@
               <FileName>app_timer_appsh.c</FileName>
               <FileType>1</FileType>
               <FilePath>D:\Develop\SDK\nrf51_10.0.0\components\libraries\timer\app_timer_appsh.c</FilePath>
+            </File>
+            <File>
+              <FileName>crc16.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\crc16.c</FilePath>
             </File>
           </Files>
         </Group>

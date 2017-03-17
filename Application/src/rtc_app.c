@@ -80,7 +80,7 @@ void rtc_setTimeUnix(uint32_t unixts)
     rtc_localts = unixts - RTC_UNIX_TS_BASE;
 }
 
-uint32_t rtc_getTimeUnix()
+uint32_t rtc_getTimeUnix(void)
 {
     return rtc_localts + RTC_UNIX_TS_BASE;
 }

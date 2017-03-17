@@ -55,7 +55,7 @@
 #include "rtc_app.h"
 #include "key_app.h"
 #include "app_page.h"
-
+#include "comm_protocol.h"
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1 /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
@@ -88,8 +88,8 @@
 /*****************************************************************************
 * add codes for enalbe app schedule
 ******************************************************************************/
-#define SCHED_MAX_EVENT_DATA_SIZE       8                                              /**< Maximum size of scheduler events. Note that scheduler BLE stack events do not contain any data, as the events are being pulled from the stack in the event handler. */
-#define SCHED_QUEUE_SIZE                20                                          /**< Maximum number of events in the scheduler queue. */
+#define SCHED_MAX_EVENT_DATA_SIZE       16                                              /**< Maximum size of scheduler events. Note that scheduler BLE stack events do not contain any data, as the events are being pulled from the stack in the event handler. */
+#define SCHED_QUEUE_SIZE                30                                          /**< Maximum number of events in the scheduler queue. */
 
 #define DEAD_BEEF 0xDEADBEEF /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
@@ -104,7 +104,7 @@ static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUI
 STATIC_ASSERT(IS_SRVC_CHANGED_CHARACT_PRESENT);                                     /** When having DFU Service support in application the Service Changed Characteristic should always be present. */  
 APP_TIMER_DEF(m_screen_saver_timer);             /**< Battery timer. */          
 
-static ble_nus_t                        m_nus;                                      /**< Structure to identify the Nordic UART Service. */
+ble_nus_t                        m_nus;                                      /**< Structure to identify the Nordic UART Service. */
 char str_passcode[7] = "";
 static _Bool awake = true;                                    
                                    
@@ -218,7 +218,7 @@ static void gap_params_init(void)
 /**@snippet [Handling the data received over BLE] */
 static void nus_data_handler(ble_nus_t * p_nus, uint8_t * p_data, uint16_t length)
 {
-    //DO SOMETHING
+    app_sched_event_put(p_data, length, comm_proto_recv_appsh_handler);
 }
 /**@snippet [Handling the data received over BLE] */
 
@@ -614,7 +614,7 @@ void key_evt(uint8_t pin)
 int main(void)
 {
     uint32_t err_code;
-    bool erase_bonds = true;
+    bool erase_bonds = false;
 
     // Initialize.
     timers_init();
