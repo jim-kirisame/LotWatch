@@ -56,6 +56,7 @@
 #include "key_app.h"
 #include "app_page.h"
 #include "comm_protocol.h"
+#include "step_counter.h"
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1 /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
@@ -560,9 +561,13 @@ void key_evt(uint8_t pin)
         {
         case TAP_ONCE_EVENT:
         case TAP_TWICE_EVENT:
-        case TOUCH_KEY_EVENT:    
+        case TOUCH_KEY_EVENT:   
+        case WRIST_ROTATE_EVENT:        
             switch(current_screen){
                 case CLOCK_PAGE:
+                    current_screen = WALK_COUNTER;
+                    break;
+                case WALK_COUNTER:
                     current_screen = DEBUG_PAGE;
                     break;
                 case DEBUG_PAGE:
@@ -573,9 +578,9 @@ void key_evt(uint8_t pin)
                     break;
             }
             break;
-                case PASSCODE_DISP_EVENT:
-                    current_screen = CONN_PASS_PAGE;
-                    break;
+        case PASSCODE_DISP_EVENT:
+            current_screen = CONN_PASS_PAGE;
+            break;
                     
         default: 
                 break;
@@ -584,7 +589,6 @@ void key_evt(uint8_t pin)
         app_timer_start(m_screen_saver_timer, SCREEN_SAVER_INTERVAL_MS, NULL);
         
         page_disp_current();
-
     }
     else
     {
@@ -637,6 +641,7 @@ int main(void)
     
     rtc_init();
     key_init();
+    step_counter_init();
      
     key_set_evt_handler(&key_evt);
 

@@ -315,7 +315,7 @@
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
             <Strict>0</Strict>
-            <EnumInt>0</EnumInt>
+            <EnumInt>1</EnumInt>
             <PlainCh>0</PlainCh>
             <Ropi>0</Ropi>
             <Rwpi>0</Rwpi>
@@ -488,6 +488,16 @@
               <FileName>comm_protocol.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\comm_protocol.c</FilePath>
+            </File>
+            <File>
+              <FileName>AlgorithmLibFornrf51.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\..\src\AlgorithmLibFornrf51.lib</FilePath>
+            </File>
+            <File>
+              <FileName>step_counter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\step_counter.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2094,6 +2104,16 @@
               <FileName>comm_protocol.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\comm_protocol.c</FilePath>
+            </File>
+            <File>
+              <FileName>AlgorithmLibFornrf51.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\..\src\AlgorithmLibFornrf51.lib</FilePath>
+            </File>
+            <File>
+              <FileName>step_counter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\step_counter.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -8,31 +8,41 @@
 _Bool charge_charging;
 _Bool charge_fulled;
 
+typedef struct key_pin_event_data
+{
+    nrf_drv_gpiote_pin_t pin;
+    nrf_gpiote_polarity_t action;
+    
+} key_pin_event_data;
+
 void (* press_evt_handler)(uint8_t);
 
 void key_appsh_evt_handler(void *p_event_data, uint16_t event_size)
 {
-    //if(sizeof(p_event_data)!= event_size)
-    //    return;
-    uint8_t * temp = (uint8_t * )p_event_data;
-    (*press_evt_handler)(*temp);
-}
-
-void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
-{
     enum key_evt_type event;
-    switch(pin){
+    key_pin_event_data * temp = (key_pin_event_data * )p_event_data;
+    switch(temp->pin){
         case INT_PIN:
-            if(mma8452_read_isDoubleTap())
-                event = TAP_TWICE_EVENT;
-            else
-                event = TAP_ONCE_EVENT;
+            switch(mma8452_read_int())
+            {
+                case 0xC4:
+                    event = TAP_ONCE_EVENT;
+                    break;
+                case 0xCC:
+                    event = TAP_TWICE_EVENT;
+                    break;
+                case 0xA2:
+                    event = WRIST_ROTATE_EVENT;
+                    break;
+                default:
+                    break;
+            }
             break;
         case KEY_PIN:
             event = TOUCH_KEY_EVENT;
             break;
         case CHRG_PIN:
-            if(action == NRF_GPIOTE_POLARITY_HITOLO)
+            if(temp->action == NRF_GPIOTE_POLARITY_HITOLO)
             {
                 event = CHARGING_EVENT;
                 charge_charging = true;
@@ -44,7 +54,7 @@ void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
             }
             break;
         case STDBY_PIN:
-            if(action == NRF_GPIOTE_POLARITY_HITOLO)
+            if(temp->action == NRF_GPIOTE_POLARITY_HITOLO)
             {
                 event = FULLED_EVENT;
                 charge_fulled = true;
@@ -58,8 +68,15 @@ void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
         default:
             break;
     }
-    
-    
+
+    (*press_evt_handler)(event);
+}
+
+void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
+{
+    key_pin_event_data event;
+    event.pin = pin;
+    event.action = action;
     app_sched_event_put(&event, sizeof(event), key_appsh_evt_handler);
 }
 

@@ -9,6 +9,7 @@
 #include "mma8452.h"
 #include "temp_app.h"
 #include "bas_app.h"
+#include "step_counter.h"
 
 enum app_page_screen current_screen = CLOCK_PAGE;
 _Bool page_should_render_every_frame;
@@ -67,6 +68,18 @@ void page_disp_pass_page()
     ssd1306_draw16Font(str_passcode,37,3);
 }
 
+void page_disp_step_page(void)
+{
+    char str[8];
+    ssd1306_clearDisplay();
+    snprintf(str,8,"%d",step_walkdata.walking_slow);
+    ssd1306_draw16Font(str,37,1);
+    snprintf(str,8,"%d",step_walkdata.walking_fast);
+    ssd1306_draw16Font(str,37,3);
+    snprintf(str,8,"%d",step_walkdata.run);
+    ssd1306_draw16Font(str,37,5);
+}
+
 void page_disp_current()
 {
     switch(current_screen){
@@ -84,6 +97,11 @@ void page_disp_current()
             page_disp_pass_page();
             page_should_render_every_frame = false;
             page_keep_awake = false;
+        case WALK_COUNTER:
+            page_disp_step_page();
+            page_should_render_every_frame = false;
+            page_keep_awake = false;
+            break;
         default:
             page_should_render_every_frame = false;
             page_keep_awake = false;

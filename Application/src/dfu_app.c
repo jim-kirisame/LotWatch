@@ -98,6 +98,8 @@ static void reset_prepare(void)
     APP_ERROR_CHECK(err_code);
 
     NRF_POWER->GPREGRET = BOOTLOADER_DFU_START;
+    if(NRF_POWER->GPREGRET != BOOTLOADER_DFU_START)
+        APP_ERROR_CHECK(0x01);
     
     nrf_delay_ms(500);
     

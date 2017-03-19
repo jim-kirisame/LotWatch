@@ -5,12 +5,60 @@
 #include "crc16.h"
 #include "ble_nus.h"
 #include "rtc_app.h"
+#include "step_counter.h"
 
 uint8_t comm_send_buff[128];
 uint8_t comm_send_buff_len = 0;
+struct {
+    queue_ack queue[10];
+    uint8_t index;
+} comm_ack_stack;
+
 _Bool comm_send_flag = false;
 extern ble_nus_t m_nus;
 
+void comm_ack_queue_add(void (*p_handle)(uint8_), uint8_t data)
+{
+    comm_ack_stack.queue[comm_ack_stack.index].operation = p_handle;
+    comm_ack_stack.queue[comm_ack_stack.index++].data = data;
+}
+
+void comm_send_step_data_current(uint8_t index)
+{
+    packet_common_id data;
+    data.type = index;
+    switch(index){
+        case 0x00:
+            data.data = step_walkdata.walking_slow;
+            break;
+        case 0x01:
+            data.data = step_walkdata.walking_fast;
+            break;
+        case 0x02:
+            data.data = step_walkdata.run;
+            break;
+        case 0x03:
+            data.data = step_walkdata.distance;
+            break;
+        case 0x04:
+            data.data = step_walkdata.cal;
+            break;
+        default:
+            return;
+    }
+    comm_send_packet_L1(STEP_DATA, (uint8_t *)&data);
+    comm_ack_queue_add(comm_send_step_data_current, index+1);
+}
+
+void comm_ack_queue_exec(void)
+{
+    if(comm_ack_stack.index>0)
+    {
+        comm_ack_stack.index--;
+        (*comm_ack_stack.queue[comm_ack_stack.index].operation)(comm_ack_stack.queue[comm_ack_stack.index].data);
+    }
+    
+}
 
 void comm_recv_packet_L0(packet_L0 * data){
     if(data->checksum != checksum8((uint8_t *)data, 3))
@@ -20,11 +68,15 @@ void comm_recv_packet_L0(packet_L0 * data){
     }
     switch(data->operation){
         case EVENT_ACK:
+            comm_ack_queue_exec();
+            break;
         case EVENT_FAIL_WRONG_CRC:
         case EVENT_FAIL_INVALID_OPERATION:
         case EVENT_SUCCESS:
             break;
-        
+        case STEP_DATA:
+            comm_send_step_data_current(0x00);
+            break;
         default:
             comm_send_packet_L0(EVENT_FAIL_INVALID_OPERATION);
             break;
@@ -96,7 +148,7 @@ void comm_proto_send_appsh_handler(void *p_event_data, uint16_t event_size)
 void comm_send_packet_L0(enum protocol_operation operation){
     packet_L0 p;
     p.start = PROTOCOL_START_FLAG;
-    p.operation = operation;
+    p.operation = (uint8_t)operation;
     p.version = PROTOCOL_VERSION;
     p.checksum = checksum8((uint8_t *)&p, 3);
     
@@ -115,7 +167,7 @@ void comm_send_packet_L0(enum protocol_operation operation){
 void comm_send_packet_L1(enum protocol_operation operation, uint8_t * data){
     packet_L1 p;
     p.start = PROTOCOL_START_FLAG;
-    p.operation = operation;
+    p.operation = (uint8_t)operation;
     p.version = PROTOCOL_VERSION;
     memcpy(p.data, data, 5);
     

@@ -50,16 +50,14 @@
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                                       /**< Include the service_changed characteristic. For DFU this should normally be the case. */
 
-#define BOOTLOADER_BUTTON               BSP_BUTTON_3                                            /**< Button used to enter SW update mode. */
-#define UPDATE_IN_PROGRESS_LED          BSP_LED_2                                               /**< Led used to indicate that DFU is active. */
-
 #define APP_TIMER_PRESCALER             0                                                       /**< Value of the RTC1 PRESCALER register. */
 #define APP_TIMER_OP_QUEUE_SIZE         4                                                       /**< Size of timer operation queues. */
 
 #define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, 0)                        /**< Maximum size of scheduler events. */
 
 #define SCHED_QUEUE_SIZE                20                                                      /**< Maximum number of events in the scheduler queue. */
-
+#define BOOTLOADER_BUTTON               9
+#define BOOTLOADER_BUTTON2              10
 
 /**@brief Callback function for asserts in the SoftDevice.
  *
@@ -98,7 +96,8 @@ static void timers_init(void)
  */
 static void buttons_init(void)
 {
-
+    nrf_gpio_cfg_input(BOOTLOADER_BUTTON, GPIO_PIN_CNF_PULL_Pullup);
+    nrf_gpio_cfg_input(BOOTLOADER_BUTTON2, GPIO_PIN_CNF_PULL_Pullup);
 }
 
 
@@ -213,7 +212,8 @@ int main(void)
     }
 
     dfu_start  = app_reset;
-    //dfu_start |= ((nrf_gpio_pin_read(BOOTLOADER_BUTTON) == 0) ? true: false);
+    dfu_start |= ((nrf_gpio_pin_read(BOOTLOADER_BUTTON) == 0) ? true: false);
+    dfu_start |= ((nrf_gpio_pin_read(BOOTLOADER_BUTTON2) == 0) ? true: false);
     
     if (dfu_start || (!bootloader_app_is_valid(DFU_BANK_0_REGION_START)))
     {
