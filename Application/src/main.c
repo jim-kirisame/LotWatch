@@ -57,6 +57,8 @@
 #include "app_page.h"
 #include "comm_protocol.h"
 #include "step_counter.h"
+#include "alarm_app.h"
+#include "viber_app.h"
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1 /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
@@ -169,11 +171,13 @@ static void timers_create(void)
 {
     // Create timers.
 	bas_timer_init();
+    alarm_timer_init();
     
     uint8_t err_code = app_timer_create(&m_screen_saver_timer,
                                 APP_TIMER_MODE_SINGLE_SHOT,
                                 screen_saver);
     APP_ERROR_CHECK(err_code);
+    
 }
 
 /**@brief Function for the GAP initialization.
@@ -460,6 +464,7 @@ static uint32_t device_manager_evt_handler(dm_handle_t const *p_handle,
                                            ret_code_t event_result)
 {
     uint32_t err_code;
+    dfu_device_manager_event_handler(p_handle, p_event);
     switch (event_result)
     {
         case BLE_GAP_SEC_STATUS_PASSKEY_ENTRY_FAILED: //handle passkey pairing fail event
@@ -557,32 +562,39 @@ static void scheduler_init(void)
 void key_evt(uint8_t pin)
 {
     if(awake){
-        switch((enum key_evt_type)pin)
+        switch(pin)
         {
-        case TAP_ONCE_EVENT:
-        case TAP_TWICE_EVENT:
-        case TOUCH_KEY_EVENT:   
-        case WRIST_ROTATE_EVENT:        
-            switch(current_screen){
-                case CLOCK_PAGE:
-                    current_screen = WALK_COUNTER;
-                    break;
-                case WALK_COUNTER:
-                    current_screen = DEBUG_PAGE;
-                    break;
-                case DEBUG_PAGE:
-                    current_screen = CLOCK_PAGE;
-                    break;
-                default:
-                    current_screen = CLOCK_PAGE;
-                    break;
+            case PASSCODE_DISP_EVENT:
+                current_screen = CONN_PASS_PAGE;
+                break;
+            case ALARM_DISP_EVENT:
+                current_screen = ALARM_DISP_PAGE;
+                break;
+            
+            case TAP_ONCE_EVENT:
+            //case TAP_TWICE_EVENT:
+            //case TOUCH_KEY_EVENT:   
+            //case WRIST_ROTATE_EVENT:  
+            {
+                switch(current_screen)
+                {
+                    case CLOCK_PAGE:
+                        current_screen = WALK_COUNTER_PAGE;
+                        break;
+                    case WALK_COUNTER_PAGE:
+                        current_screen = DEBUG_PAGE;
+                        break;
+                    case DEBUG_PAGE:
+                        current_screen = CLOCK_PAGE;
+                        break;
+                    default:
+                        current_screen = CLOCK_PAGE;
+                        break;
+                }
+                
             }
-            break;
-        case PASSCODE_DISP_EVENT:
-            current_screen = CONN_PASS_PAGE;
-            break;
-                    
-        default: 
+            break;          
+            default: 
                 break;
         }
         app_timer_stop(m_screen_saver_timer);
@@ -593,24 +605,39 @@ void key_evt(uint8_t pin)
     else
     {
         awake = true;
-        switch((enum key_evt_type)pin)
+        switch(pin)
         {
             case PASSCODE_DISP_EVENT:
                 current_screen = CONN_PASS_PAGE;
-            break;
-                    
+                break; 
+            case ALARM_DISP_EVENT:
+                current_screen = ALARM_DISP_PAGE;
+                break;
             default: 
                 current_screen = CLOCK_PAGE;
                 break;
-
         }
-        page_disp_current();
         ssd1306_displayOn();
+        page_disp_current();
         app_timer_start(m_screen_saver_timer, SCREEN_SAVER_INTERVAL_MS, NULL);
         
     }
 
     //ssd1306_display();
+}
+
+void lotwatch_service_init(void)
+{  
+    ssd1306_init();
+    mma8452_init();
+    temp_init();
+    viber_init();
+    
+    rtc_init();
+    key_init();
+    step_counter_init();
+     
+    key_set_evt_handler(&key_evt);
 }
 
 /**@brief Function for application main entry.
@@ -634,32 +661,30 @@ int main(void)
     services_init();
     conn_params_init();
     
-    ssd1306_init();
-    mma8452_init();
-    
-    temp_init();
-    
-    rtc_init();
-    key_init();
-    step_counter_init();
-     
-    key_set_evt_handler(&key_evt);
+    lotwatch_service_init();
 
     // Start execution.
     application_timers_start();
     err_code = ble_advertising_start(BLE_ADV_MODE_FAST);
     APP_ERROR_CHECK(err_code);
 
-    rtc_setTimeUnix(1489314770);
+    //for test only.
+    rtc_setTimeUnix(1489314775);
+    alarm_test();
+    
+    page_disp_current();
     
     // Enter main loop.
     for (;;)
     {
-        if(page_should_render_every_frame){
+        if(page_should_render_every_frame)
+        {
             page_disp_current();
         }
         if(awake)
+        {
             ssd1306_display();
+        }
         app_sched_execute();
         power_manage();
     }

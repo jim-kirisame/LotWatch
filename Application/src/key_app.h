@@ -11,7 +11,7 @@ extern _Bool charge_charging;
 extern _Bool charge_fulled;
 
 enum key_evt_type{
-    TOUCH_KEY_EVENT,
+    TOUCH_KEY_EVENT=0xC0,
     TAP_ONCE_EVENT,
     TAP_TWICE_EVENT,
     WRIST_ROTATE_EVENT,
@@ -19,7 +19,8 @@ enum key_evt_type{
     NOT_CHARGING_EVENT,
     FULLED_EVENT,
     NOT_FULLED_EVENT,
-    PASSCODE_DISP_EVENT
+    PASSCODE_DISP_EVENT,
+    ALARM_DISP_EVENT,
 };
 
 void key_init(void);

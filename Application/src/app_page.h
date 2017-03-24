@@ -4,10 +4,11 @@
 #include <stdint.h>
 
 enum app_page_screen {
-    CLOCK_PAGE = 0,
+    CLOCK_PAGE = 0x80,
     MESSAGE_PAGE,
-    WALK_COUNTER,
-    ALARM_CLOCK,
+    WALK_COUNTER_PAGE,
+    ALARM_CLOCK_PAGE,
+    ALARM_DISP_PAGE,
     CONN_PASS_PAGE,
     CHARGING_PAGE,
     DEBUG_PAGE

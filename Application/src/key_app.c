@@ -66,10 +66,11 @@ void key_appsh_evt_handler(void *p_event_data, uint16_t event_size)
             }
             break;
         default:
+            event = (enum key_evt_type)temp->pin;
             break;
     }
 
-    (*press_evt_handler)(event);
+    (*press_evt_handler)((uint8_t)event);
 }
 
 void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
@@ -87,7 +88,9 @@ void key_set_evt_handler(void (*evt)(uint8_t))
 
 void key_generate_evt(enum key_evt_type event)
 {
-    app_sched_event_put(&event, sizeof(event), key_appsh_evt_handler);
+    key_pin_event_data temp;
+    temp.pin = event;
+    app_sched_event_put(&temp, sizeof(temp), key_appsh_evt_handler);
 }
 
 void key_init(void)

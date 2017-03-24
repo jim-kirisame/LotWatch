@@ -5,6 +5,7 @@
 void ssd1306_draw5x7Font(uint8_t x, uint8_t y, char * string);
 void ssd1306_draw48Font(char * string);
 void ssd1306_draw16Font(char * string, uint8_t x, uint8_t y);
+void ssd1306_drawAlarmIcon48(void);
 static const uint8_t font5x8[] =              // ASCII
 {
 	0x00,0x00,0x00,0x00,0x00, // - -

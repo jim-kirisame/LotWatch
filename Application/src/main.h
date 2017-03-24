@@ -7,7 +7,7 @@
 #include "app_scheduler.h"
 
 #define APP_TIMER_PRESCALER 0     /**< Value of the RTC1 PRESCALER register. */
-#define APP_TIMER_OP_QUEUE_SIZE 4 /**< Size of timer operation queues. */
+#define APP_TIMER_OP_QUEUE_SIZE 8 /**< Size of timer operation queues. */
 
 extern char str_passcode[7];
 

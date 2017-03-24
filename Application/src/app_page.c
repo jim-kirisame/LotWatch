@@ -79,6 +79,11 @@ void page_disp_step_page(void)
     snprintf(str,8,"%d",step_walkdata.run);
     ssd1306_draw16Font(str,37,5);
 }
+void page_disp_alarming_page(void)
+{
+    ssd1306_clearDisplay();
+    ssd1306_drawAlarmIcon48();
+}
 
 void page_disp_current()
 {
@@ -97,10 +102,16 @@ void page_disp_current()
             page_disp_pass_page();
             page_should_render_every_frame = false;
             page_keep_awake = false;
-        case WALK_COUNTER:
+            break;
+        case WALK_COUNTER_PAGE:
             page_disp_step_page();
             page_should_render_every_frame = false;
             page_keep_awake = false;
+            break;
+        case ALARM_DISP_PAGE:
+            page_should_render_every_frame = false;
+            page_keep_awake = true;
+            page_disp_alarming_page();
             break;
         default:
             page_should_render_every_frame = false;

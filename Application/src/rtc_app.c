@@ -5,6 +5,7 @@
 #include "nrf_drv_config.h"
 #include "nrf_drv_rtc.h"
 #include "nrf_drv_clock.h"
+#include "alarm_app.h"
 
 #include <string.h>
 
@@ -17,6 +18,8 @@ uint32_t rtc_localts;
 static const uint8_t rtc_dayOfMonthTable[] = {31,28,31,30,31,30,31,31,30,31,30,31};
 static const char rtc_weekStrTable[][4] = {"SUN", "MON", "TUE", "WED", "THR", "FRI", "SAT"};
 const nrf_drv_rtc_t rtc = NRF_DRV_RTC_INSTANCE(0); /**< Declaring an instance of nrf_drv_rtc for RTC0. */
+
+static date_t date_temp;
 
 void rtc_add1s(void)
 {
@@ -38,7 +41,17 @@ static void rtc_handler(nrf_drv_rtc_int_type_t int_type)
 
 void rtc_timer_handler(void *p_context){
     UNUSED_PARAMETER(p_context);
+    
+    date_t date;
+    
     rtc_add1s();
+    rtc_getTime(&date);
+    if(date.minute != date_temp.minute)
+    {
+        alarm_check(&date);
+        date_temp = date;
+    }
+    
 }
 
 void rtc_init()

@@ -17,7 +17,7 @@ struct {
 _Bool comm_send_flag = false;
 extern ble_nus_t m_nus;
 
-void comm_ack_queue_add(void (*p_handle)(uint8_), uint8_t data)
+void comm_ack_queue_add(void (*p_handle)(uint8_t), uint8_t data)
 {
     comm_ack_stack.queue[comm_ack_stack.index].operation = p_handle;
     comm_ack_stack.queue[comm_ack_stack.index++].data = data;
