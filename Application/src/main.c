@@ -59,6 +59,7 @@
 #include "step_counter.h"
 #include "alarm_app.h"
 #include "viber_app.h"
+#include "config_storage.h"
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                           /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
@@ -107,9 +108,7 @@ static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUI
                                    {BLE_UUID_BATTERY_SERVICE,            BLE_UUID_TYPE_BLE},
                                    {BLE_UUID_NUS_SERVICE,                BLE_UUID_TYPE_BLE}}; /**< Universally unique service identifiers. */
                                    
-ble_nus_t                        m_nus;                                             /**< Structure to identify the Nordic UART Service. */
-char str_passcode[7] = "";
-static _Bool awake = true;                                    
+ble_nus_t                        m_nus;                                             /**< Structure to identify the Nordic UART Service. */                                  
                                    
 void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name)
 {
@@ -149,9 +148,9 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t *p_file_name)
 
 void screen_saver(void *p_context){
     UNUSED_PARAMETER(p_context);
-    if(!page_keep_awake)
+    if(!watch_config_data.temporary.page_keep_awake)
     {
-        awake = false;
+        watch_config_data.temporary.disp_awake= false;
         ssd1306_displayOff();
     }
         //app_sched_event_put(NULL, NULL, screen_saver_appsh_handler);
@@ -381,7 +380,7 @@ static void on_ble_evt(ble_evt_t *p_ble_evt)
     case BLE_GAP_EVT_PASSKEY_DISPLAY:    
         for(int i=0;i<6;i++)
             snprintf(str2, 8, "%s%c", str2, p_ble_evt->evt.gap_evt.params.passkey_display.passkey[i]);
-        snprintf(str_passcode, 7, "%s", str2);
+        snprintf(watch_config_data.temporary.pair_passcode, 7, "%s", str2);
         key_generate_evt(PASSCODE_DISP_EVENT);
         break;
     
@@ -561,7 +560,7 @@ static void scheduler_init(void)
 
 void key_evt(uint8_t evt)
 {
-    if(awake){
+    if(watch_config_data.temporary.disp_awake){
         switch(evt)
         {
             /*
@@ -574,25 +573,25 @@ void key_evt(uint8_t evt)
             //case TOUCH_KEY_EVENT:   
             // 
             {
-                switch(current_screen)
+                switch(watch_config_data.temporary.page_current_screen)
                 {
                     case CLOCK_PAGE:
-                        current_screen = WALK_COUNTER_PAGE;
+                        watch_config_data.temporary.page_current_screen = WALK_COUNTER_PAGE;
                         break;
                     case WALK_COUNTER_PAGE:
-                        current_screen = MESSAGE_PAGE;
+                        watch_config_data.temporary.page_current_screen = MESSAGE_PAGE;
                         break;
                     case MESSAGE_PAGE:
-                        current_screen = DEBUG_PAGE;
+                        watch_config_data.temporary.page_current_screen = DEBUG_PAGE;
                         break;
                     case DEBUG_PAGE:
-                        current_screen = CLOCK_PAGE;
+                        watch_config_data.temporary.page_current_screen = CLOCK_PAGE;
                         break;
                     case ALARM_DISP_PAGE:
                         alarm_exit();
                         break;
                     default:
-                        current_screen = CLOCK_PAGE;
+                        watch_config_data.temporary.page_current_screen = CLOCK_PAGE;
                         break;
                 }
                 break;  
@@ -606,8 +605,8 @@ void key_evt(uint8_t evt)
     }
     else
     {
-        awake = true;
-        current_screen = CLOCK_PAGE;
+        watch_config_data.temporary.disp_awake = true;
+        watch_config_data.temporary.page_current_screen = CLOCK_PAGE;
         ssd1306_displayOn();
         app_timer_start(m_screen_saver_timer, SCREEN_SAVER_INTERVAL_MS, NULL);
         
@@ -616,16 +615,16 @@ void key_evt(uint8_t evt)
     switch(evt)
     {
         case PASSCODE_DISP_EVENT:
-            current_screen = CONN_PASS_PAGE;
+            watch_config_data.temporary.page_current_screen = CONN_PASS_PAGE;
             break;
         case ALARM_DISP_EVENT:
-            current_screen = ALARM_DISP_PAGE;
+            watch_config_data.temporary.page_current_screen = ALARM_DISP_PAGE;
             break;
         case NORMAL_DISP_EVENT:
-            current_screen = CLOCK_PAGE;
+            watch_config_data.temporary.page_current_screen = CLOCK_PAGE;
             break;
         default: 
-            //current_screen = CLOCK_PAGE;
+            //watch_config_data.temporary.page_current_screen = CLOCK_PAGE;
             break;
     }
     page_disp_current();
@@ -634,10 +633,14 @@ void key_evt(uint8_t evt)
 
 void lotwatch_service_init(void)
 {  
+
+    //config_load_default();
     ssd1306_init();
     mma8452_init();
     temp_init();
     viber_init();
+    
+    config_init();
     
     rtc_init();
     key_init();
@@ -683,11 +686,11 @@ int main(void)
     // Enter main loop.
     for (;;)
     {
-        if(page_should_render_every_frame)
+        if(watch_config_data.temporary.page_should_render_every_frame)
         {
             page_disp_current();
         }
-        if(awake)
+        if(watch_config_data.temporary.disp_awake)
         {
             ssd1306_display();
         }

@@ -6,6 +6,7 @@
 #include "ble_nus.h"
 #include "rtc_app.h"
 #include "step_counter.h"
+#include "config_storage.h"
 
 uint8_t comm_send_buff[128];
 uint8_t comm_send_buff_len = 0;
@@ -29,19 +30,19 @@ void comm_send_step_data_current(uint8_t index)
     data.type = index;
     switch(index){
         case 0x00:
-            data.data = step_walkdata.walking_slow;
+            data.data = watch_config_data.persist.step_walkdata.walking_slow;
             break;
         case 0x01:
-            data.data = step_walkdata.walking_fast;
+            data.data = watch_config_data.persist.step_walkdata.walking_fast;
             break;
         case 0x02:
-            data.data = step_walkdata.run;
+            data.data = watch_config_data.persist.step_walkdata.run;
             break;
         case 0x03:
-            data.data = step_walkdata.distance;
+            data.data = watch_config_data.persist.step_walkdata.distance;
             break;
         case 0x04:
-            data.data = step_walkdata.cal;
+            data.data = watch_config_data.persist.step_walkdata.cal;
             break;
         default:
             return;

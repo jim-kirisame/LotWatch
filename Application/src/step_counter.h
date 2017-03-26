@@ -31,8 +31,8 @@ typedef struct packet_walkdata {
 void step_health_algorithm_callback(algorithm_event_t *event, void* user_data);
 void step_counter_init(void);
 
-extern packet_sleepdata step_sleepdata[SLEEP_DATA_COUNT];
-extern packet_walkdata step_walkdata;
+//extern packet_sleepdata step_sleepdata[SLEEP_DATA_COUNT];
+//extern packet_walkdata step_walkdata;
 extern uint8_t step_sleepdata_index;
 
 #endif

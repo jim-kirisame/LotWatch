@@ -10,10 +10,7 @@
 #include "temp_app.h"
 #include "bas_app.h"
 #include "step_counter.h"
-
-enum app_page_screen current_screen = CLOCK_PAGE;
-_Bool page_should_render_every_frame;
-_Bool page_keep_awake;
+#include "config_storage.h"
 
 void page_disp_clock_page(void)
 {
@@ -72,7 +69,7 @@ void page_disp_debug_page(void)
     ssd1306_draw5x7Font(0,2,str2);
     snprintf(str2, 24, "acc_z: %d", acc_data.z);
     ssd1306_draw5x7Font(0,3,str2);
-    snprintf(str2, 24, "temp: %.2f deg", temp_current_temp);
+    snprintf(str2, 24, "temp: %.2f deg", watch_config_data.temporary.temp_current_temp);
     ssd1306_draw5x7Font(0,4,str2);
     snprintf(str2, 24, "%d-%d-%d %d:%d:%d %s", date.year, date.month, date.day, date.hour, date.minute, date.second, weekstr);
     ssd1306_draw5x7Font(0,5,str2);
@@ -83,20 +80,20 @@ void page_disp_debug_page(void)
 void page_disp_pass_page()
 {
     ssd1306_clearDisplay();
-    ssd1306_draw16Font(str_passcode,37,3);
+    ssd1306_draw16Font(watch_config_data.temporary.pair_passcode,37,3);
 }
 
 void page_disp_step_page(void)
 {
     char str[8];
     ssd1306_clearDisplay();
-    snprintf(str,8,"%d",step_walkdata.walking_slow);
+    snprintf(str,8,"%d",watch_config_data.persist.step_walkdata.walking_slow);
     ssd1306_draw16Font(str,37,1);
     ssd1306_drawIcon16(ICON_WALK_SLOW, 17, 1);
-    snprintf(str,8,"%d",step_walkdata.walking_fast);
+    snprintf(str,8,"%d",watch_config_data.persist.step_walkdata.walking_fast);
     ssd1306_draw16Font(str,37,3);
     ssd1306_drawIcon16(ICON_WALK_FAST, 17, 3);
-    snprintf(str,8,"%d",step_walkdata.run);
+    snprintf(str,8,"%d",watch_config_data.persist.step_walkdata.run);
     ssd1306_draw16Font(str,37,5);
     ssd1306_drawIcon16(ICON_RUN, 17, 5);
 }
@@ -148,40 +145,40 @@ void page_disp_message_page(void)
  **/
 void page_disp_current()
 {
-    switch(current_screen){
+    switch(watch_config_data.temporary.page_current_screen){
         case CLOCK_PAGE:
             page_disp_clock_page();
-            page_should_render_every_frame = false;
-            page_keep_awake = false;
+            watch_config_data.temporary.page_should_render_every_frame = false;
+            watch_config_data.temporary.page_keep_awake = false;
             break;
         case DEBUG_PAGE:
             page_disp_debug_page();
-            page_should_render_every_frame = true;
-            page_keep_awake = true;
+            watch_config_data.temporary.page_should_render_every_frame = true;
+            watch_config_data.temporary.page_keep_awake = true;
             break;
         case CONN_PASS_PAGE:
             page_disp_pass_page();
-            page_should_render_every_frame = false;
-            page_keep_awake = false;
+            watch_config_data.temporary.page_should_render_every_frame = false;
+            watch_config_data.temporary.page_keep_awake = false;
             break;
         case WALK_COUNTER_PAGE:
             page_disp_step_page();
-            page_should_render_every_frame = false;
-            page_keep_awake = false;
+            watch_config_data.temporary.page_should_render_every_frame = false;
+            watch_config_data.temporary.page_keep_awake = false;
             break;
         case ALARM_DISP_PAGE:
-            page_should_render_every_frame = false;
-            page_keep_awake = true;
+            watch_config_data.temporary.page_should_render_every_frame = false;
+            watch_config_data.temporary.page_keep_awake = true;
             page_disp_alarming_page();
             break;
         case MESSAGE_PAGE:
-            page_should_render_every_frame = false;
-            page_keep_awake = false;
+            watch_config_data.temporary.page_should_render_every_frame = false;
+            watch_config_data.temporary.page_keep_awake = false;
             page_disp_message_page();
             break;
         default:
-            page_should_render_every_frame = false;
-            page_keep_awake = false;
+            watch_config_data.temporary.page_should_render_every_frame = false;
+            watch_config_data.temporary.page_keep_awake = false;
             break;
             
     }

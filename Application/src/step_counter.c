@@ -5,13 +5,14 @@
 #include "app_timer.h"
 #include "mma8452.h"
 #include "rtc_app.h"
+#include "config_storage.h"
 
 APP_TIMER_DEF(m_acc_timer_meas_id);             /**< Battery timer. */
-packet_userdata step_userdata;
+//packet_userdata step_userdata;
 uint8_t ms_counter;
 
 packet_sleepdata step_sleepdata[SLEEP_DATA_COUNT];
-packet_walkdata step_walkdata;
+//packet_walkdata step_walkdata;
 uint8_t step_sleepdata_index;
 
 
@@ -73,17 +74,23 @@ void step_counter_timer_start(void)
 
 void step_health_user_data_init(void)
 {
-    step_userdata.age = 23;
-    step_userdata.height = 175;
-    step_userdata.sex = false;
-    step_userdata.weight = 75;
+    /*
+    watch_config_data.persist.config.step_userdata.age = 23;
+    watch_config_data.persist.config.step_userdata.height = 175;
+    watch_config_data.persist.config.step_userdata.sex = false;
+    watch_config_data.persist.config.step_userdata.weight = 75;
+    */
 }
 
 void step_health_algorithm_init(void)
 {
     uint8_t errcode;
     
-    errcode = init_health_algorithm(25, step_userdata.height, step_userdata.weight, step_userdata.age, step_userdata.sex);
+    errcode = init_health_algorithm(25,
+                                    watch_config_data.persist.config.step_userdata.height,
+                                    watch_config_data.persist.config.step_userdata.weight,
+                                    watch_config_data.persist.config.step_userdata.age,
+                                    watch_config_data.persist.config.step_userdata.sex);
     APP_ERROR_CHECK_BOOL(errcode == 0);
     
     errcode = register_health_algorithm_callback(step_health_algorithm_callback, NULL);
@@ -103,27 +110,27 @@ void step_distance_event_handler(algorithm_event_t *event)
     switch(event->distance.mode)
     {
         case STEP_MODE_WALK_SLOW:
-            step_walkdata.walking_slow+=event->distance.new_steps;
+            watch_config_data.persist.step_walkdata.walking_slow+=event->distance.new_steps;
         break;
         
         case STEP_MODE_WALK_QUICK:
-            step_walkdata.walking_fast+=event->distance.new_steps;
+            watch_config_data.persist.step_walkdata.walking_fast+=event->distance.new_steps;
         break;
         
         case STEP_MODE_RUN:
-            step_walkdata.run += event->distance.new_steps;
+            watch_config_data.persist.step_walkdata.run += event->distance.new_steps;
         break;
     }
     
-    step_walkdata.distance += event->distance.new_distances;
-    step_walkdata.cal += event->distance.new_calory;
+    watch_config_data.persist.step_walkdata.distance += event->distance.new_distances;
+    watch_config_data.persist.step_walkdata.cal += event->distance.new_calory;
 }
 
 void step_sleep_event_handler(algorithm_event_t *event)
 {
     APP_ERROR_CHECK_BOOL(event->event_common.type == SLEEP_EVENT);
-    step_sleepdata[step_sleepdata_index].type = event->sleep.mode;
-    step_sleepdata[step_sleepdata_index++].timestamp = event->sleep.starting_time_stamp;
+    watch_config_data.persist.step_sleepdata[step_sleepdata_index].type = event->sleep.mode;
+    watch_config_data.persist.step_sleepdata[step_sleepdata_index++].timestamp = event->sleep.starting_time_stamp;
 }
 
 void step_health_algorithm_callback(algorithm_event_t *event, void* user_data)

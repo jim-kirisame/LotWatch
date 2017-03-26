@@ -5,10 +5,12 @@
 #include "app_timer.h"
 #include "viber_app.h"
 
-#define ALARM_TIMER_INTERVAL_MS (APP_TIMER_TICKS(10000, APP_TIMER_PRESCALER))
+#include "config_storage.h"
+
+#define ALARM_TIMER_INTERVAL_MS (APP_TIMER_TICKS(watch_config_data.persist.config.alarm_vibra_time*1000, APP_TIMER_PRESCALER))
 APP_TIMER_DEF(m_alarm_timer);             /**< rtc timer. */
 
-alarm_data_item alarm_data[MAX_ALARM_COUNT];
+//alarm_data_item alarm_data[MAX_ALARM_COUNT];
 uint8_t alarm_delay;
 uint8_t alarm_delay_times;
 
@@ -24,9 +26,9 @@ void alarm_timer_init(void)
 
 void alarm_test(void)
 {
-    alarm_data[0].hour = 18;
-    alarm_data[0].minute = 33;
-    alarm_data[0].repeat = 0xFF;
+    watch_config_data.persist.config.alarm_data[0].hour = 18;
+    watch_config_data.persist.config.alarm_data[0].minute = 33;
+    watch_config_data.persist.config.alarm_data[0].repeat = 0xFF;
 }
 
 void alarm_timer_start(void)
@@ -58,7 +60,7 @@ void alarm_exit(void)
 void alarm_delay_action(void)
 {
     alarm_exit();
-    alarm_delay = ALARM_DELAY_MINUTES;
+    alarm_delay = watch_config_data.persist.config.alarm_delay_time;
 }
 
 void alarm_timer_handler(void *p_context)
@@ -80,13 +82,13 @@ void alarm_check(date_t * date)
     }
     for(int i=0; i< MAX_ALARM_COUNT; i++)
     {
-        if( alarm_data[i].repeat & (1<<7) || alarm_data[i].repeat & ( 1 << date->week ) )
+        if( watch_config_data.persist.config.alarm_data[i].repeat & (1<<7) || watch_config_data.persist.config.alarm_data[i].repeat & ( 1 << date->week ) )
         {
-            if(alarm_data[i].hour == date->hour && alarm_data[i].minute == date->minute)
+            if(watch_config_data.persist.config.alarm_data[i].hour == date->hour && watch_config_data.persist.config.alarm_data[i].minute == date->minute)
             {
                 alarm_enter();
-                alarm_delay_times = ALARM_DELAY_TIMES;
-                alarm_data[i].repeat &= ~(1<<7);
+                alarm_delay_times = watch_config_data.persist.config.alarm_delay_max_count;
+                watch_config_data.persist.config.alarm_data[i].repeat &= ~(1<<7);
             }
             
         }

@@ -11,8 +11,8 @@ typedef struct alarm_data{
 } alarm_data_item;
 
 #define MAX_ALARM_COUNT 5
-#define ALARM_DELAY_MINUTES 1
-#define ALARM_DELAY_TIMES   3
+//#define ALARM_DELAY_MINUTES 1
+//#define ALARM_DELAY_TIMES   3
 
 /**
  * Function: Check if there is an alarm and alarm it

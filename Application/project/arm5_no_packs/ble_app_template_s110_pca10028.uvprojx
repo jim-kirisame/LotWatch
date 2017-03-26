@@ -450,11 +450,6 @@
               <FilePath>..\..\src\ssd1306_app.c</FilePath>
             </File>
             <File>
-              <FileName>charge_app.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\charge_app.c</FilePath>
-            </File>
-            <File>
               <FileName>mma8452.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\mma8452.c</FilePath>
@@ -498,6 +493,21 @@
               <FileName>step_counter.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\step_counter.c</FilePath>
+            </File>
+            <File>
+              <FileName>alarm_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\alarm_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>viber_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\viber_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>config_storage.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\config_storage.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2066,11 +2076,6 @@
               <FilePath>..\..\src\ssd1306_app.c</FilePath>
             </File>
             <File>
-              <FileName>charge_app.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\charge_app.c</FilePath>
-            </File>
-            <File>
               <FileName>mma8452.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\mma8452.c</FilePath>
@@ -2114,6 +2119,21 @@
               <FileName>step_counter.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\step_counter.c</FilePath>
+            </File>
+            <File>
+              <FileName>alarm_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\alarm_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>viber_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\viber_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>config_storage.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\config_storage.c</FilePath>
             </File>
           </Files>
         </Group>
