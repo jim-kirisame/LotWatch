@@ -60,54 +60,54 @@
 #include "alarm_app.h"
 #include "viber_app.h"
 
-#define IS_SRVC_CHANGED_CHARACT_PRESENT 1 /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
+#define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                           /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
-#define DEVICE_NAME "LotWatch"           /**< Name of device. Will be included in the advertising data. */
-#define MANUFACTURER_NAME "Lotlab" /**< Manufacturer. Will be passed to Device Information Service. */
-#define APP_ADV_INTERVAL 300                    /**< The advertising interval (in units of 0.625 ms. This value corresponds to 25 ms). */
-#define APP_ADV_TIMEOUT_IN_SECONDS 180          /**< The advertising timeout in units of seconds. */
+#define DEVICE_NAME "LotWatch"                                                      /**< Name of device. Will be included in the advertising data. */
+#define MANUFACTURER_NAME "Lotlab"                                                  /**< Manufacturer. Will be passed to Device Information Service. */
+#define APP_ADV_INTERVAL 300                                                        /**< The advertising interval (in units of 0.625 ms. This value corresponds to 25 ms). */
+#define APP_ADV_TIMEOUT_IN_SECONDS 180                                              /**< The advertising timeout in units of seconds. */
 
 #define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
 
-#define MIN_CONN_INTERVAL MSEC_TO_UNITS(100, UNIT_1_25_MS) /**< Minimum acceptable connection interval (0.1 seconds). */
-#define MAX_CONN_INTERVAL MSEC_TO_UNITS(200, UNIT_1_25_MS) /**< Maximum acceptable connection interval (0.2 second). */
-#define SLAVE_LATENCY 0                                    /**< Slave latency. */
-#define CONN_SUP_TIMEOUT MSEC_TO_UNITS(4000, UNIT_10_MS)   /**< Connection supervisory timeout (4 seconds). */
+#define MIN_CONN_INTERVAL MSEC_TO_UNITS(100, UNIT_1_25_MS)                          /**< Minimum acceptable connection interval (0.1 seconds). */
+#define MAX_CONN_INTERVAL MSEC_TO_UNITS(200, UNIT_1_25_MS)                          /**< Maximum acceptable connection interval (0.2 second). */
+#define SLAVE_LATENCY 0                                                             /**< Slave latency. */
+#define CONN_SUP_TIMEOUT MSEC_TO_UNITS(4000, UNIT_10_MS)                            /**< Connection supervisory timeout (4 seconds). */
 
 #define SCREEN_SAVER_INTERVAL_MS (APP_TIMER_TICKS(5000, APP_TIMER_PRESCALER))
-#define SECURITY_REQUEST_DELAY         APP_TIMER_TICKS(4000, APP_TIMER_PRESCALER)  /**< Delay after connection until Security Request is sent, if necessary (ticks). */
-#define FIRST_CONN_PARAMS_UPDATE_DELAY APP_TIMER_TICKS(5000, APP_TIMER_PRESCALER) /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (5 seconds). */
-#define NEXT_CONN_PARAMS_UPDATE_DELAY APP_TIMER_TICKS(30000, APP_TIMER_PRESCALER) /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
-#define MAX_CONN_PARAMS_UPDATE_COUNT 3                                            /**< Number of attempts before giving up the connection parameter negotiation. */
+#define SECURITY_REQUEST_DELAY         APP_TIMER_TICKS(4000, APP_TIMER_PRESCALER)   /**< Delay after connection until Security Request is sent, if necessary (ticks). */
+#define FIRST_CONN_PARAMS_UPDATE_DELAY APP_TIMER_TICKS(5000, APP_TIMER_PRESCALER)   /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (5 seconds). */
+#define NEXT_CONN_PARAMS_UPDATE_DELAY APP_TIMER_TICKS(30000, APP_TIMER_PRESCALER)   /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
+#define MAX_CONN_PARAMS_UPDATE_COUNT 3                                              /**< Number of attempts before giving up the connection parameter negotiation. */
 
-#define SEC_PARAM_TIMEOUT                 30                                                /**< Timeout for Pairing Request or Security Request (in seconds). */
-#define SEC_PARAM_BOND 1                               /**< Perform bonding. */
-#define SEC_PARAM_MITM 1                               /**< Man In The Middle protection not required. */
-#define SEC_PARAM_IO_CAPABILITIES BLE_GAP_IO_CAPS_DISPLAY_ONLY /**< No I/O capabilities. */
-#define SEC_PARAM_OOB 0                                /**< Out Of Band data not available. */
-#define SEC_PARAM_MIN_KEY_SIZE 7                       /**< Minimum encryption key size. */
-#define SEC_PARAM_MAX_KEY_SIZE 16                      /**< Maximum encryption key size. */
+#define SEC_PARAM_TIMEOUT                 30                                        /**< Timeout for Pairing Request or Security Request (in seconds). */
+#define SEC_PARAM_BOND 1                                                            /**< Perform bonding. */
+#define SEC_PARAM_MITM 1                                                            /**< Man In The Middle protection not required. */
+#define SEC_PARAM_IO_CAPABILITIES BLE_GAP_IO_CAPS_DISPLAY_ONLY                      /**< No I/O capabilities. */
+#define SEC_PARAM_OOB 0                                                             /**< Out Of Band data not available. */
+#define SEC_PARAM_MIN_KEY_SIZE 7                                                    /**< Minimum encryption key size. */
+#define SEC_PARAM_MAX_KEY_SIZE 16                                                   /**< Maximum encryption key size. */
 
 /*****************************************************************************
 * add codes for enalbe app schedule
 ******************************************************************************/
-#define SCHED_MAX_EVENT_DATA_SIZE       16                                              /**< Maximum size of scheduler events. Note that scheduler BLE stack events do not contain any data, as the events are being pulled from the stack in the event handler. */
+#define SCHED_MAX_EVENT_DATA_SIZE       16                                          /**< Maximum size of scheduler events. Note that scheduler BLE stack events do not contain any data, as the events are being pulled from the stack in the event handler. */
 #define SCHED_QUEUE_SIZE                30                                          /**< Maximum number of events in the scheduler queue. */
 
-#define DEAD_BEEF 0xDEADBEEF /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
+#define DEAD_BEEF 0xDEADBEEF                                                        /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
-static dm_application_instance_t m_app_handle; /**< Application identifier allocated by device manager */
+STATIC_ASSERT(IS_SRVC_CHANGED_CHARACT_PRESENT);                                     /** When having DFU Service support in application the Service Changed Characteristic should always be present. */  
+APP_TIMER_DEF(m_screen_saver_timer);                                                /**< Battery timer. */          
 
-uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID; /**< Handle of the current connection. */
+static dm_application_instance_t m_app_handle;                                      /**< Application identifier allocated by device manager */
+
+uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                                   /**< Handle of the current connection. */
 
 static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE},
                                    {BLE_UUID_BATTERY_SERVICE,            BLE_UUID_TYPE_BLE},
                                    {BLE_UUID_NUS_SERVICE,                BLE_UUID_TYPE_BLE}}; /**< Universally unique service identifiers. */
                                    
-STATIC_ASSERT(IS_SRVC_CHANGED_CHARACT_PRESENT);                                     /** When having DFU Service support in application the Service Changed Characteristic should always be present. */  
-APP_TIMER_DEF(m_screen_saver_timer);             /**< Battery timer. */          
-
-ble_nus_t                        m_nus;                                      /**< Structure to identify the Nordic UART Service. */
+ble_nus_t                        m_nus;                                             /**< Structure to identify the Nordic UART Service. */
 char str_passcode[7] = "";
 static _Bool awake = true;                                    
                                    
@@ -559,22 +559,20 @@ static void scheduler_init(void)
     APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
 }
 
-void key_evt(uint8_t pin)
+void key_evt(uint8_t evt)
 {
     if(awake){
-        switch(pin)
+        switch(evt)
         {
-            case PASSCODE_DISP_EVENT:
-                current_screen = CONN_PASS_PAGE;
-                break;
-            case ALARM_DISP_EVENT:
-                current_screen = ALARM_DISP_PAGE;
-                break;
-            
+            /*
+            case WRIST_ROTATE_EVENT: 
+                if(current_screen == ALARM_DISP_PAGE)
+                    alarm_delay_action(); //too sensitive now
+            */
             case TAP_ONCE_EVENT:
             //case TAP_TWICE_EVENT:
             //case TOUCH_KEY_EVENT:   
-            //case WRIST_ROTATE_EVENT:  
+            // 
             {
                 switch(current_screen)
                 {
@@ -582,47 +580,55 @@ void key_evt(uint8_t pin)
                         current_screen = WALK_COUNTER_PAGE;
                         break;
                     case WALK_COUNTER_PAGE:
+                        current_screen = MESSAGE_PAGE;
+                        break;
+                    case MESSAGE_PAGE:
                         current_screen = DEBUG_PAGE;
                         break;
                     case DEBUG_PAGE:
                         current_screen = CLOCK_PAGE;
                         break;
+                    case ALARM_DISP_PAGE:
+                        alarm_exit();
+                        break;
                     default:
                         current_screen = CLOCK_PAGE;
                         break;
                 }
-                
+                break;  
             }
-            break;          
+        
             default: 
                 break;
         }
         app_timer_stop(m_screen_saver_timer);
         app_timer_start(m_screen_saver_timer, SCREEN_SAVER_INTERVAL_MS, NULL);
-        
-        page_disp_current();
     }
     else
     {
         awake = true;
-        switch(pin)
-        {
-            case PASSCODE_DISP_EVENT:
-                current_screen = CONN_PASS_PAGE;
-                break; 
-            case ALARM_DISP_EVENT:
-                current_screen = ALARM_DISP_PAGE;
-                break;
-            default: 
-                current_screen = CLOCK_PAGE;
-                break;
-        }
+        current_screen = CLOCK_PAGE;
         ssd1306_displayOn();
-        page_disp_current();
         app_timer_start(m_screen_saver_timer, SCREEN_SAVER_INTERVAL_MS, NULL);
         
     }
-
+    
+    switch(evt)
+    {
+        case PASSCODE_DISP_EVENT:
+            current_screen = CONN_PASS_PAGE;
+            break;
+        case ALARM_DISP_EVENT:
+            current_screen = ALARM_DISP_PAGE;
+            break;
+        case NORMAL_DISP_EVENT:
+            current_screen = CLOCK_PAGE;
+            break;
+        default: 
+            //current_screen = CLOCK_PAGE;
+            break;
+    }
+    page_disp_current();
     //ssd1306_display();
 }
 

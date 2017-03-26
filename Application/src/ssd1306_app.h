@@ -63,6 +63,7 @@ void ssd1306_startScrollLeft(uint8_t start, uint8_t stop);
 void ssd1306_startScrollRight(uint8_t start, uint8_t stop);
 void ssd1306_invertDisplay(_Bool i);
 void ssd1306_drawPixel(uint8_t x, uint8_t y, _Bool white);
+void ssd1306_drawByte(uint8_t x, uint8_t y, uint8_t byte);
 void ssd1306_init(void);
 void ssd1306_write_data(uint8_t * data, uint32_t len);
 void ssd1306_displayOff(void);

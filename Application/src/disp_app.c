@@ -110,7 +110,7 @@ uint8_t ssd1306_draw16FontInner(uint8_t *data, uint8_t len, uint8_t x, uint8_t y
 {
     uint8_t i,j;
     
-    for(i=y; i<7 && i<=y+1 ;i++){
+    for(i=y; i<8 && i<=y+1 ;i++){
         for(j=0;j<len/2;j++){
             buffer[j+x+i*128] = *data++;
         }
@@ -177,10 +177,49 @@ void ssd1306_draw16Font(char * string, uint8_t x, uint8_t y)
     }
 }
 
-void ssd1306_drawAlarmIcon48(void)
+void ssd1306_drawAlarmIcon48(uint8_t y)
 {
+    if(y>2)
+        return;
     for(int i=0; i<6; i++)
     {
-        memcpy(&buffer[(i+1)*128+40], &icons_alarm_icon_48x48[i*48], 48);
+        memcpy(&buffer[(i+y)*128+40], &icons_alarm_icon_48x48[i*48], 48);
     }
+}
+
+void ssd1306_drawIcon16(enum icons_type type, uint8_t x, uint8_t y)
+{
+    switch(type)
+    {
+        case ICON_LOCK:
+            ssd1306_draw16FontInner((uint8_t *)&icons_lock_icon[0],sizeof(icons_lock_icon),x,y);
+            break;
+        case ICON_ALARM:
+            ssd1306_draw16FontInner((uint8_t *)&icons_alarm_icon[0],sizeof(icons_alarm_icon),x,y);
+            break;
+        case ICON_QQ:
+            ssd1306_draw16FontInner((uint8_t *)&icons_qq_icon[0],sizeof(icons_qq_icon),x,y);
+            break;
+        case ICON_PHONE:
+            ssd1306_draw16FontInner((uint8_t *)&icons_phone_icon[0],sizeof(icons_phone_icon),x,y);
+            break;
+        case ICON_WECHAT:
+            ssd1306_draw16FontInner((uint8_t *)&icons_wechat_icon[0],sizeof(icons_wechat_icon),x,y);
+            break;
+        case ICON_RUN:
+            ssd1306_draw16FontInner((uint8_t *)&icons_run_icon[0],sizeof(icons_run_icon),x,y);
+            break;
+        case ICON_WALK_SLOW:
+            ssd1306_draw16FontInner((uint8_t *)&icons_walkslow_icon[0],sizeof(icons_walkslow_icon),x,y);
+            break;
+        case ICON_WALK_FAST:
+            ssd1306_draw16FontInner((uint8_t *)&icons_walkfast_icon[0],sizeof(icons_walkfast_icon),x,y);
+            break;
+        case ICON_MESSAGE:
+            ssd1306_draw16FontInner((uint8_t *)&icons_message_icon[0],sizeof(icons_message_icon),x,y);
+            break;
+        default:
+            break;
+    }
+    
 }

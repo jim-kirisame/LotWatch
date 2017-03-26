@@ -17,10 +17,11 @@ _Bool page_keep_awake;
 
 void page_disp_clock_page(void)
 {
-    //TODO: add battery icon
+    
     char str[24];
     char weekstr[4];
     date_t date;
+    uint8_t batt = bas_get_cur_bat_lvl();
     rtc_getTime(&date);
     rtc_getWeekStr(weekstr, date.week);
     
@@ -31,6 +32,23 @@ void page_disp_clock_page(void)
     
     snprintf(str, 24, "%02d-%02d %s", date.month, date.day, weekstr);
     ssd1306_draw5x7Font((128-9*6)/2,7,str);
+    
+    //Draw battery icon
+    ssd1306_drawByte(110, 0, 0xFF);
+    ssd1306_drawByte(111, 0, 0x81);
+    for(int i=0;i<10;i++)
+    {
+        if(batt>=(i*10+5))
+            ssd1306_drawByte(112+i, 0, 0xbd);
+        else
+            ssd1306_drawByte(112+i, 0, 0x81);
+    }
+    ssd1306_drawByte(121, 0, 0x81);
+    ssd1306_drawByte(122, 0, 0xFF);
+    ssd1306_drawByte(123, 0, 0x24);
+    ssd1306_drawByte(124, 0, 0x3C);
+    
+    
 }
 
 void page_disp_debug_page(void)
@@ -74,17 +92,60 @@ void page_disp_step_page(void)
     ssd1306_clearDisplay();
     snprintf(str,8,"%d",step_walkdata.walking_slow);
     ssd1306_draw16Font(str,37,1);
+    ssd1306_drawIcon16(ICON_WALK_SLOW, 17, 1);
     snprintf(str,8,"%d",step_walkdata.walking_fast);
     ssd1306_draw16Font(str,37,3);
+    ssd1306_drawIcon16(ICON_WALK_FAST, 17, 3);
     snprintf(str,8,"%d",step_walkdata.run);
     ssd1306_draw16Font(str,37,5);
+    ssd1306_drawIcon16(ICON_RUN, 17, 5);
 }
 void page_disp_alarming_page(void)
 {
+    char str[6];
+    date_t date;
+    rtc_getTime(&date);
+    snprintf(str, 6, "%02d:%02d", date.hour, date.minute);
+    
     ssd1306_clearDisplay();
-    ssd1306_drawAlarmIcon48();
+    ssd1306_drawAlarmIcon48(0);
+    
+    ssd1306_draw16Font(str,44,6);
 }
 
+/**
+ * Function:
+ * Params:
+ * Return:
+ **/
+void page_disp_message_page(void)
+{
+    char str[8];
+    ssd1306_clearDisplay();
+    
+    snprintf(str,8,"%d",255);
+    ssd1306_draw16Font(str,20,1);
+    ssd1306_drawIcon16(ICON_PHONE, 0, 1);
+    
+    snprintf(str,8,"%d",255);
+    ssd1306_draw16Font(str,84,1);
+    ssd1306_drawIcon16(ICON_MESSAGE, 64, 1);
+    
+    snprintf(str,8,"%d",255);
+    ssd1306_draw16Font(str,20,4);
+    ssd1306_drawIcon16(ICON_QQ, 0, 4);
+    
+    snprintf(str,8,"%d",255);
+    ssd1306_draw16Font(str,84,4);
+    ssd1306_drawIcon16(ICON_WECHAT, 64, 4);
+}
+
+
+/**
+ * Function: Display current page
+ * Params: none
+ * Return: none
+ **/
 void page_disp_current()
 {
     switch(current_screen){
@@ -112,6 +173,11 @@ void page_disp_current()
             page_should_render_every_frame = false;
             page_keep_awake = true;
             page_disp_alarming_page();
+            break;
+        case MESSAGE_PAGE:
+            page_should_render_every_frame = false;
+            page_keep_awake = false;
+            page_disp_message_page();
             break;
         default:
             page_should_render_every_frame = false;

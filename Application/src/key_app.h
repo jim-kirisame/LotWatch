@@ -21,6 +21,7 @@ enum key_evt_type{
     NOT_FULLED_EVENT,
     PASSCODE_DISP_EVENT,
     ALARM_DISP_EVENT,
+    NORMAL_DISP_EVENT,
 };
 
 void key_init(void);

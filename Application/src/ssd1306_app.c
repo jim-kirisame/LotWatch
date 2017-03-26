@@ -193,6 +193,12 @@ void ssd1306_drawPixel(uint8_t x, uint8_t y, _Bool white){
     buffer[ x + (y/8) * 128] |=  (white << (y&7));
 }
 
+void ssd1306_drawByte(uint8_t x, uint8_t y, uint8_t byte){
+    if(x > 128 || y > 8)
+        return;
+    buffer[ x + y * 128] = byte;
+}
+
 void ssd1306_invertDisplay(_Bool i) {
   if (i) {
     ssd1306_write_command(SSD1306_INVERTDISPLAY);
