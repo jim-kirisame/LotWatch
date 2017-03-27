@@ -16,7 +16,7 @@ void temp_get(void)
     NRF_TEMP->EVENTS_DATARDY = 0;
 
     /**@note Workaround for PAN_028 rev2.0A anomaly 29 - TEMP: Stop task clears the TEMP register. */
-    watch_config_data.temporary.temp_current_temp = (nrf_temp_read() / 4.0f);
+    wchData.temporary.temp_current_temp = (nrf_temp_read() / 4.0f);
 
     /**@note Workaround for PAN_028 rev2.0A anomaly 30 - TEMP: Temp module analog front end does not power down when DATARDY event occurs. */
     NRF_TEMP->TASKS_STOP = 1; /** Stop the temperature measurement. */

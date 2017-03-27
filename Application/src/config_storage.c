@@ -1,8 +1,10 @@
 #include "main.h"
 #include "config_storage.h"
 #include "pstorage.h"
+#include <string.h>
+#include <stdio.h>
 
-watch_data watch_config_data;
+watch_data wchData;
 pstorage_handle_t       pstorage_base_block_id;
 
 void config_pstorage_callback_handler(pstorage_handle_t *p_handle, uint8_t op_code, uint32_t result, uint8_t *p_data, uint32_t data_len)
@@ -42,21 +44,27 @@ void config_pstorage_init(void)
 
 void config_load_default(void)
 {
-    watch_config_data.persist.config.alarm_delay_max_count = 3;
-    watch_config_data.persist.config.alarm_delay_time = 5;
-    watch_config_data.persist.config.alarm_vibra_time = 10;
-    watch_config_data.persist.config.debug_enable = true;
-    watch_config_data.persist.config.display_sleep_time = 5;
-    watch_config_data.persist.config.step_userdata.age = 18;
-    watch_config_data.persist.config.step_userdata.height = 170;
-    watch_config_data.persist.config.step_userdata.sex = 0;
-    watch_config_data.persist.config.step_userdata.weight = 70;
+    wchData.persist.config.alarm_delay_max_count = 3;
+    wchData.persist.config.alarm_delay_time = 5;
+    wchData.persist.config.alarm_vibra_time = 10;
+    wchData.persist.config.debug_enable = true;
+    wchData.persist.config.display_sleep_time = 5;
+    wchData.persist.config.step_userdata.age = 18;
+    wchData.persist.config.step_userdata.height = 170;
+    wchData.persist.config.step_userdata.sex = 0;
+    wchData.persist.config.step_userdata.weight = 70;
+    snprintf(wchData.persist.config.ble_name, 9, "HelloWor");
+    wchData.persist.config.page_order[0] = 0x80;
+    wchData.persist.config.page_order[1] = 0x81;
+    wchData.persist.config.page_order[2] = 0x82;
+    wchData.persist.config.page_order[3] = 0x87;
+    wchData.persist.config.page_order[3] = 0x86;
 }
 
 void config_post_init()
 {
-    watch_config_data.temporary.disp_awake = true;
-    watch_config_data.temporary.page_current_screen = 0x80;
+    wchData.temporary.disp_awake = true;
+    wchData.temporary.page_current_screen = 0x80;
 }
 
 void config_read(void)
@@ -76,7 +84,7 @@ void config_read(void)
     }
     else
     {
-        pstorage_load((uint8_t *)&watch_config_data.persist, &block_handle, sizeof(watch_persistent_data), 4);
+        pstorage_load((uint8_t *)&wchData.persist, &block_handle, sizeof(watch_persistent_data), 4);
         APP_ERROR_CHECK(err_code);
     }
 }
@@ -102,7 +110,7 @@ void config_write(void)
     err_code = pstorage_update(&block_handle,(uint8_t *)&version, 4, 0);
     APP_ERROR_CHECK(err_code);
     
-    err_code =  pstorage_update(&block_handle,(uint8_t *)&watch_config_data.persist, sizeof(watch_persistent_data), 4);
+    err_code =  pstorage_update(&block_handle,(uint8_t *)&wchData.persist, sizeof(watch_persistent_data), 4);
     APP_ERROR_CHECK(err_code);
     
 }

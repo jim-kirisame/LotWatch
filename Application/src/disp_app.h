@@ -18,6 +18,7 @@ void ssd1306_draw5x7Font(uint8_t x, uint8_t y, char * string);
 void ssd1306_draw48Font(char * string);
 void ssd1306_draw16Font(char * string, uint8_t x, uint8_t y);
 void ssd1306_drawAlarmIcon48(uint8_t y);
+void ssd1306_drawChargingIcon48(uint8_t y);
 void ssd1306_drawIcon16(enum icons_type type, uint8_t x, uint8_t y);
 
 #endif

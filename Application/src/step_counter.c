@@ -11,9 +11,10 @@ APP_TIMER_DEF(m_acc_timer_meas_id);             /**< Battery timer. */
 //packet_userdata step_userdata;
 uint8_t ms_counter;
 
-packet_sleepdata step_sleepdata[SLEEP_DATA_COUNT];
+//packet_sleepdata step_sleepdata[SLEEP_DATA_COUNT];
 //packet_walkdata step_walkdata;
-uint8_t step_sleepdata_index;
+//uint8_t step_sleepdata_index;
+volatile _Bool isInit = false;
 
 
 uint32_t SquareRoot(uint32_t a_nInput)
@@ -42,7 +43,8 @@ uint32_t SquareRoot(uint32_t a_nInput)
 void step_counter_timer_handler(void *p_context)
 {
     UNUSED_PARAMETER(p_context);
-    
+    if(!isInit)
+        return;
     uint32_t xyz;
     ms_counter ++;
     ms_counter %= ACC_MEASURE_HZ;
@@ -75,10 +77,10 @@ void step_counter_timer_start(void)
 void step_health_user_data_init(void)
 {
     /*
-    watch_config_data.persist.config.step_userdata.age = 23;
-    watch_config_data.persist.config.step_userdata.height = 175;
-    watch_config_data.persist.config.step_userdata.sex = false;
-    watch_config_data.persist.config.step_userdata.weight = 75;
+    wchData.persist.config.step_userdata.age = 23;
+    wchData.persist.config.step_userdata.height = 175;
+    wchData.persist.config.step_userdata.sex = false;
+    wchData.persist.config.step_userdata.weight = 75;
     */
 }
 
@@ -87,15 +89,24 @@ void step_health_algorithm_init(void)
     uint8_t errcode;
     
     errcode = init_health_algorithm(25,
-                                    watch_config_data.persist.config.step_userdata.height,
-                                    watch_config_data.persist.config.step_userdata.weight,
-                                    watch_config_data.persist.config.step_userdata.age,
-                                    watch_config_data.persist.config.step_userdata.sex);
+                                    wchData.persist.config.step_userdata.height,
+                                    wchData.persist.config.step_userdata.weight,
+                                    wchData.persist.config.step_userdata.age,
+                                    wchData.persist.config.step_userdata.sex);
     APP_ERROR_CHECK_BOOL(errcode == 0);
     
     errcode = register_health_algorithm_callback(step_health_algorithm_callback, NULL);
     APP_ERROR_CHECK_BOOL(errcode == 0);
+    isInit = true;
 }
+
+void step_health_algorithm_reload(void)
+{
+    isInit = false;
+    health_algorithm_finalize();
+    step_health_algorithm_init();
+}
+
 void step_counter_init(void)
 {
     step_health_user_data_init();
@@ -110,27 +121,27 @@ void step_distance_event_handler(algorithm_event_t *event)
     switch(event->distance.mode)
     {
         case STEP_MODE_WALK_SLOW:
-            watch_config_data.persist.step_walkdata.walking_slow+=event->distance.new_steps;
+            wchData.persist.step_walkdata.walking_slow+=event->distance.new_steps;
         break;
         
         case STEP_MODE_WALK_QUICK:
-            watch_config_data.persist.step_walkdata.walking_fast+=event->distance.new_steps;
+            wchData.persist.step_walkdata.walking_fast+=event->distance.new_steps;
         break;
         
         case STEP_MODE_RUN:
-            watch_config_data.persist.step_walkdata.run += event->distance.new_steps;
+            wchData.persist.step_walkdata.run += event->distance.new_steps;
         break;
     }
     
-    watch_config_data.persist.step_walkdata.distance += event->distance.new_distances;
-    watch_config_data.persist.step_walkdata.cal += event->distance.new_calory;
+    wchData.persist.step_walkdata.distance += event->distance.new_distances;
+    wchData.persist.step_walkdata.cal += event->distance.new_calory;
 }
 
 void step_sleep_event_handler(algorithm_event_t *event)
 {
     APP_ERROR_CHECK_BOOL(event->event_common.type == SLEEP_EVENT);
-    watch_config_data.persist.step_sleepdata[step_sleepdata_index].type = event->sleep.mode;
-    watch_config_data.persist.step_sleepdata[step_sleepdata_index++].timestamp = event->sleep.starting_time_stamp;
+    wchData.persist.step_sleepdata[wchData.persist.step_sleepindex].type = event->sleep.mode;
+    wchData.persist.step_sleepdata[wchData.persist.step_sleepindex++].timestamp = event->sleep.starting_time_stamp;
 }
 
 void step_health_algorithm_callback(algorithm_event_t *event, void* user_data)
@@ -148,6 +159,18 @@ void step_health_algorithm_callback(algorithm_event_t *event, void* user_data)
         default:
             break;
     }
+}
+
+void step_nextday(void)
+{
+    //TODO: add some event to inform mobile phone this data;
+    wchData.temporary.step_lastday = wchData.persist.step_walkdata;
+    
+    wchData.persist.step_walkdata.cal = 0;
+    wchData.persist.step_walkdata.distance = 0;
+    wchData.persist.step_walkdata.run = 0;
+    wchData.persist.step_walkdata.walking_fast = 0;
+    wchData.persist.step_walkdata.walking_slow = 0;
 }
 
 

@@ -6,7 +6,7 @@
 #include "nrf_drv_rtc.h"
 #include "nrf_drv_clock.h"
 #include "alarm_app.h"
-
+#include "step_counter.h"
 #include <string.h>
 
 #define COMPARE_COUNTERTIME  (3UL)                                        /**< Get Compare event COMPARE_TIME seconds after the counter starts from 0. */
@@ -49,9 +49,12 @@ void rtc_timer_handler(void *p_context){
     if(date.minute != date_temp.minute)
     {
         alarm_check(&date);
-        date_temp = date;
     }
-    
+    if(date.day != date_temp.day)
+    {
+        step_nextday();
+    }
+    date_temp = date;
 }
 
 void rtc_init()

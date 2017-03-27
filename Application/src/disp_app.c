@@ -177,16 +177,24 @@ void ssd1306_draw16Font(char * string, uint8_t x, uint8_t y)
     }
 }
 
-void ssd1306_drawAlarmIcon48(uint8_t y)
+void ssd1306_draw48IconInner(uint8_t y, uint8_t * icon)
 {
     if(y>2)
         return;
     for(int i=0; i<6; i++)
     {
-        memcpy(&buffer[(i+y)*128+40], &icons_alarm_icon_48x48[i*48], 48);
+        memcpy(&buffer[(i+y)*128+40], &icon[i*48], 48);
     }
+    
 }
-
+void ssd1306_drawAlarmIcon48(uint8_t y)
+{
+    ssd1306_draw48IconInner(y, (uint8_t *)icons_alarm_icon_48x48);
+}
+void ssd1306_drawChargingIcon48(uint8_t y)
+{
+    ssd1306_draw48IconInner(y, (uint8_t *)icons_charging_icon_48x48);
+}
 void ssd1306_drawIcon16(enum icons_type type, uint8_t x, uint8_t y)
 {
     switch(type)

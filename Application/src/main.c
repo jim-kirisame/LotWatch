@@ -148,9 +148,9 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t *p_file_name)
 
 void screen_saver(void *p_context){
     UNUSED_PARAMETER(p_context);
-    if(!watch_config_data.temporary.page_keep_awake)
+    if(!wchData.temporary.page_keep_awake)
     {
-        watch_config_data.temporary.disp_awake= false;
+        wchData.temporary.disp_awake= false;
         ssd1306_displayOff();
     }
         //app_sched_event_put(NULL, NULL, screen_saver_appsh_handler);
@@ -193,8 +193,8 @@ static void gap_params_init(void)
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
 
     err_code = sd_ble_gap_device_name_set(&sec_mode,
-                                          (const uint8_t *)DEVICE_NAME,
-                                          strlen(DEVICE_NAME));
+                                          (const uint8_t *)wchData.persist.config.ble_name,
+                                          strlen(wchData.persist.config.ble_name));
     APP_ERROR_CHECK(err_code);
 
     memset(&gap_conn_params, 0, sizeof(gap_conn_params));
@@ -380,7 +380,7 @@ static void on_ble_evt(ble_evt_t *p_ble_evt)
     case BLE_GAP_EVT_PASSKEY_DISPLAY:    
         for(int i=0;i<6;i++)
             snprintf(str2, 8, "%s%c", str2, p_ble_evt->evt.gap_evt.params.passkey_display.passkey[i]);
-        snprintf(watch_config_data.temporary.pair_passcode, 7, "%s", str2);
+        snprintf(wchData.temporary.pair_passcode, 7, "%s", str2);
         key_generate_evt(PASSCODE_DISP_EVENT);
         break;
     
@@ -560,7 +560,7 @@ static void scheduler_init(void)
 
 void key_evt(uint8_t evt)
 {
-    if(watch_config_data.temporary.disp_awake){
+    if(wchData.temporary.disp_awake){
         switch(evt)
         {
             /*
@@ -573,27 +573,44 @@ void key_evt(uint8_t evt)
             //case TOUCH_KEY_EVENT:   
             // 
             {
-                switch(watch_config_data.temporary.page_current_screen)
+                                
+                switch(wchData.temporary.page_current_screen)
                 {
-                    case CLOCK_PAGE:
-                        watch_config_data.temporary.page_current_screen = WALK_COUNTER_PAGE;
-                        break;
-                    case WALK_COUNTER_PAGE:
-                        watch_config_data.temporary.page_current_screen = MESSAGE_PAGE;
-                        break;
-                    case MESSAGE_PAGE:
-                        watch_config_data.temporary.page_current_screen = DEBUG_PAGE;
-                        break;
-                    case DEBUG_PAGE:
-                        watch_config_data.temporary.page_current_screen = CLOCK_PAGE;
-                        break;
                     case ALARM_DISP_PAGE:
                         alarm_exit();
                         break;
                     default:
-                        watch_config_data.temporary.page_current_screen = CLOCK_PAGE;
                         break;
                 }
+                
+                for(int i=0;i<sizeof(wchData.persist.config.page_order);i++)
+                {
+                    if(wchData.persist.config.page_order[i] == wchData.temporary.page_current_screen)
+                    {
+                        if(i+1 == sizeof(wchData.persist.config.page_order))//lastone
+                        {
+                            wchData.temporary.page_current_screen = wchData.persist.config.page_order[0];
+                        } 
+                        else
+                        {
+                            uint8_t next = wchData.persist.config.page_order[i+1];
+                            if(next == 0)
+                            {
+                                wchData.temporary.page_current_screen = wchData.persist.config.page_order[0];
+                                break;
+                            }
+                            else
+                            {
+                                wchData.temporary.page_current_screen = next;
+                                break;
+                            }
+                        }
+                    }
+                    else if(i+1 == sizeof(wchData.persist.config.page_order))//lastone
+                    {
+                        wchData.temporary.page_current_screen = wchData.persist.config.page_order[0];
+                    }
+                }        
                 break;  
             }
         
@@ -605,8 +622,8 @@ void key_evt(uint8_t evt)
     }
     else
     {
-        watch_config_data.temporary.disp_awake = true;
-        watch_config_data.temporary.page_current_screen = CLOCK_PAGE;
+        wchData.temporary.disp_awake = true;
+        wchData.temporary.page_current_screen = wchData.temporary.page_current_screen = wchData.persist.config.page_order[0];;
         ssd1306_displayOn();
         app_timer_start(m_screen_saver_timer, SCREEN_SAVER_INTERVAL_MS, NULL);
         
@@ -615,16 +632,22 @@ void key_evt(uint8_t evt)
     switch(evt)
     {
         case PASSCODE_DISP_EVENT:
-            watch_config_data.temporary.page_current_screen = CONN_PASS_PAGE;
+            wchData.temporary.page_current_screen = CONN_PASS_PAGE;
             break;
         case ALARM_DISP_EVENT:
-            watch_config_data.temporary.page_current_screen = ALARM_DISP_PAGE;
+            wchData.temporary.page_current_screen = ALARM_DISP_PAGE;
             break;
+        case NOT_CHARGING_EVENT:
+        case NOT_FULLED_EVENT:
         case NORMAL_DISP_EVENT:
-            watch_config_data.temporary.page_current_screen = CLOCK_PAGE;
+            wchData.temporary.page_current_screen = wchData.persist.config.page_order[0];
+            break;
+        case CHARGING_EVENT:
+        case FULLED_EVENT:
+            wchData.temporary.page_current_screen = CHARGING_PAGE;
             break;
         default: 
-            //watch_config_data.temporary.page_current_screen = CLOCK_PAGE;
+            //wchData.temporary.page_current_screen = CLOCK_PAGE;
             break;
     }
     page_disp_current();
@@ -640,7 +663,7 @@ void lotwatch_service_init(void)
     temp_init();
     viber_init();
     
-    config_init();
+    
     
     rtc_init();
     key_init();
@@ -665,6 +688,9 @@ int main(void)
     buttons_leds_init(&erase_bonds);
     ble_stack_init();
     device_manager_init(erase_bonds);
+    
+    config_init();
+    
     gap_params_init();
     advertising_init();
     services_init();
@@ -686,11 +712,11 @@ int main(void)
     // Enter main loop.
     for (;;)
     {
-        if(watch_config_data.temporary.page_should_render_every_frame)
+        if(wchData.temporary.page_should_render_every_frame)
         {
             page_disp_current();
         }
-        if(watch_config_data.temporary.disp_awake)
+        if(wchData.temporary.disp_awake)
         {
             ssd1306_display();
         }
