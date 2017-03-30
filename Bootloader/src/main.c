@@ -96,8 +96,8 @@ static void timers_init(void)
  */
 static void buttons_init(void)
 {
-    nrf_gpio_cfg_input(BOOTLOADER_BUTTON, GPIO_PIN_CNF_PULL_Pullup);
-    nrf_gpio_cfg_input(BOOTLOADER_BUTTON2, GPIO_PIN_CNF_PULL_Pullup);
+    nrf_gpio_cfg_input(BOOTLOADER_BUTTON, NRF_GPIO_PIN_PULLUP);
+    nrf_gpio_cfg_input(BOOTLOADER_BUTTON2, NRF_GPIO_PIN_PULLUP);
 }
 
 
