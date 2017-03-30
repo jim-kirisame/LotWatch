@@ -48,7 +48,12 @@
 #include "pstorage_platform.h"
 #include "nrf_mbr.h"
 
+#define BOOTLOADER_BTN_CHARGE 9
+#define BOOTLOADER_BTN_FULLED 10
+
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                                       /**< Include the service_changed characteristic. For DFU this should normally be the case. */
+
+#define UPDATE_IN_PROGRESS_LED          19                                                      /**< Led used to indicate that DFU is active. */
 
 #define APP_TIMER_PRESCALER             0                                                       /**< Value of the RTC1 PRESCALER register. */
 #define APP_TIMER_OP_QUEUE_SIZE         4                                                       /**< Size of timer operation queues. */
@@ -56,8 +61,8 @@
 #define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, 0)                        /**< Maximum size of scheduler events. */
 
 #define SCHED_QUEUE_SIZE                20                                                      /**< Maximum number of events in the scheduler queue. */
-#define BOOTLOADER_BUTTON               9
-#define BOOTLOADER_BUTTON2              10
+
+
 
 /**@brief Callback function for asserts in the SoftDevice.
  *
@@ -75,14 +80,6 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
     app_error_handler(0xDEADBEEF, line_num, p_file_name);
 }
 
-
-/**@brief Function for initialization of LEDs.
- */
-static void leds_init(void)
-{
-}
-
-
 /**@brief Function for initializing the timer handler module (app_timer).
  */
 static void timers_init(void)
@@ -96,8 +93,12 @@ static void timers_init(void)
  */
 static void buttons_init(void)
 {
-    nrf_gpio_cfg_input(BOOTLOADER_BUTTON, NRF_GPIO_PIN_PULLUP);
-    nrf_gpio_cfg_input(BOOTLOADER_BUTTON2, NRF_GPIO_PIN_PULLUP);
+    nrf_gpio_cfg_input(BOOTLOADER_BTN_CHARGE,
+                             NRF_GPIO_PIN_PULLUP);  
+    nrf_gpio_cfg_input(BOOTLOADER_BTN_FULLED,
+                             NRF_GPIO_PIN_PULLUP);
+    nrf_gpio_cfg_output(UPDATE_IN_PROGRESS_LED);
+    nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
 }
 
 
@@ -136,7 +137,7 @@ static void ble_stack_init(bool init_softdevice)
     err_code = sd_softdevice_vector_table_base_set(BOOTLOADER_REGION_START);
     APP_ERROR_CHECK(err_code);
    
-    SOFTDEVICE_HANDLER_APPSH_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_1000MS_CALIBRATION, true);
+    SOFTDEVICE_HANDLER_APPSH_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_250MS_CALIBRATION, true);
 
     // Enable BLE stack 
     ble_enable_params_t ble_enable_params;
@@ -175,8 +176,6 @@ int main(void)
     {
         NRF_POWER->GPREGRET = 0;
     }
-    
-    leds_init();
 
     // This check ensures that the defined fields in the bootloader corresponds with actual
     // setting in the nRF51 chip.
@@ -191,7 +190,7 @@ int main(void)
 
     if (bootloader_dfu_sd_in_progress())
     {
-        //nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
+        nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
 
         err_code = bootloader_dfu_sd_update_continue();
         APP_ERROR_CHECK(err_code);
@@ -202,7 +201,7 @@ int main(void)
         err_code = bootloader_dfu_sd_update_finalize();
         APP_ERROR_CHECK(err_code);
 
-        //nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
+        nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
     }
     else
     {
@@ -212,18 +211,18 @@ int main(void)
     }
 
     dfu_start  = app_reset;
-    dfu_start |= ((nrf_gpio_pin_read(BOOTLOADER_BUTTON) == 0) ? true: false);
-    dfu_start |= ((nrf_gpio_pin_read(BOOTLOADER_BUTTON2) == 0) ? true: false);
+    dfu_start |= (nrf_gpio_pin_read(BOOTLOADER_BTN_CHARGE) == 0);
+    dfu_start |= (nrf_gpio_pin_read(BOOTLOADER_BTN_FULLED) == 0);
     
     if (dfu_start || (!bootloader_app_is_valid(DFU_BANK_0_REGION_START)))
     {
-        //nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
+        nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
 
         // Initiate an update of the firmware.
         err_code = bootloader_dfu_start();
         APP_ERROR_CHECK(err_code);
 
-        //nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
+        nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
     }
 
     if (bootloader_app_is_valid(DFU_BANK_0_REGION_START) && !bootloader_dfu_sd_in_progress())
