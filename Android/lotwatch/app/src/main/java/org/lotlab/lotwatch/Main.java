@@ -1,5 +1,7 @@
 package org.lotlab.lotwatch;
 
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -80,19 +82,28 @@ public class Main extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction transaction = fragmentManager.
+                beginTransaction();
 
-        } else if (id == R.id.nav_slideshow) {
-
+        if (id == R.id.nav_main) {
+            MainFragment fragment = new MainFragment();
+            transaction.replace(R.id.main_layout, fragment);
+        } else if (id == R.id.nav_alarm) {
+            AlarmFragment fragment = new AlarmFragment();
+            transaction.replace(R.id.main_layout, fragment);
+        } else if (id == R.id.nav_sleep) {
+            SleepFragment fragment = new SleepFragment();
+            transaction.replace(R.id.main_layout, fragment);
+        } else if (id == R.id.nav_sport) {
+            SportFragment fragment = new SportFragment();
+            transaction.replace(R.id.main_layout, fragment);
         } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+            SettingFragment fragment = new SettingFragment();
+            transaction.replace(R.id.main_layout, fragment);
         }
+
+        transaction.commit();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
