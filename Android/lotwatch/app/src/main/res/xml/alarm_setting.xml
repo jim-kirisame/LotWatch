@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout="@layout/preference_item"
+    android:title="@string/title_activity_setting">
+
+    <PreferenceCategory
+        android:layout="@layout/preference_category_widget"
+        android:title="闹钟">
+        <Preference
+            android:layout="@layout/preference_item"
+            android:summary="周一、周二、周三、周四、周五"
+            android:title="7:30" />
+        <Preference
+            android:layout="@layout/preference_item"
+            android:summary="周六、周日"
+            android:title="9:30" />
+        <Preference
+            android:layout="@layout/preference_item"
+            android:summary="每天"
+            android:title="12:30" />
+        <Preference
+            android:layout="@layout/preference_item"
+            android:summary="仅一次"
+            android:title="18:30" />
+        <Preference
+            android:layout="@layout/preference_item"
+            android:summary="关闭"
+            android:title="21:30" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -2,6 +2,7 @@
 #define _COMM_PROTOCOL_
 
 #include <stdint.h>
+#include "mma8452.h"
 
 #define PROTOCOL_START_FLAG 0x55
 #define PROTOCOL_VERSION    0x01
@@ -42,6 +43,7 @@ void comm_send_packet_L1(enum protocol_operation operation, uint8_t * data);
 void comm_send_packet_L2(enum protocol_operation operation, uint8_t * data);
 void comm_proto_send_appsh_handler(void *p_event_data, uint16_t event_size);
 void comm_proto_recv_appsh_handler(void *p_event_data, uint16_t event_size);
+void comm_send_acc_data(mma8452_acc_data data);
 
 typedef struct packet_L0{
     uint8_t start;

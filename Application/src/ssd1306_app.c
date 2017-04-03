@@ -109,6 +109,11 @@ void ssd1306_spi_init(){
     APP_ERROR_CHECK(err_code);
 }
 
+void ssd1306_spi_uninit()
+{
+    nrf_drv_spi_uninit(&m_spi_master);
+}
+
 void ssd1306_spi_write(uint8_t * p_tx_data, uint16_t len, _Bool dc){
     nrf_gpio_pin_write(SPI_DC, dc); //data: true; command: false;
         

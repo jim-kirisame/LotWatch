@@ -68,5 +68,7 @@ void ssd1306_init(void);
 void ssd1306_write_data(uint8_t * data, uint32_t len);
 void ssd1306_displayOff(void);
 void ssd1306_displayOn(void);
+void ssd1306_spi_init(void);
+void ssd1306_spi_uninit(void);
 
 #endif

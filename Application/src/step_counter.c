@@ -58,6 +58,9 @@ void step_counter_timer_handler(void *p_context)
                                         acc_data.z,
                                         SquareRoot(xyz),
                                         (long long)rtc_getTimeUnix()*1000 + (1000 / ACC_MEASURE_HZ * ms_counter));
+    
+    if(wchData.persist.config.debug_enable)
+        comm_send_acc_data(acc_data);
 }
 
 void step_counter_timer_init(void)

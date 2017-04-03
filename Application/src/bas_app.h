@@ -13,16 +13,13 @@
 #define BATTERY_ADC_DIV         (1023)
 
 #define MIN_BAT_MV (3600)
-#define BATTERY_MEASURE_INTERVAL_MS (APP_TIMER_TICKS(30000, APP_TIMER_PRESCALER))
 
 void bas_update_measure_data(void);
 uint16_t bas_get_cur_bat_vot(void);
 uint8_t bas_get_cur_bat_lvl(void);
 
 void bas_app_init(void);
-void bas_timer_init(void);
-void bas_timer_start(void);
-void bas_timer_stop(void);
+void adc_tick(void);
 void bas_ble_evt_dispatch(ble_evt_t * p_ble_evt);
 uint8_t bas_vot2lvl(uint16_t lvl);
 

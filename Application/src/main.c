@@ -41,6 +41,7 @@
 #include "device_manager.h"
 #include "pstorage.h"
 #include "app_trace.h"
+#include "nrf_drv_wdt.h"
 
 #include "ble_nus.h"
 
@@ -66,13 +67,13 @@
 #define DEVICE_NAME "LotWatch"                                                      /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME "Lotlab"                                                  /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL 300                                                        /**< The advertising interval (in units of 0.625 ms. This value corresponds to 25 ms). */
-#define APP_ADV_TIMEOUT_IN_SECONDS 180                                              /**< The advertising timeout in units of seconds. */
+#define APP_ADV_TIMEOUT_IN_SECONDS 0                                                /**< The advertising timeout in units of seconds. */
 
 #define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
 
 #define MIN_CONN_INTERVAL MSEC_TO_UNITS(100, UNIT_1_25_MS)                          /**< Minimum acceptable connection interval (0.1 seconds). */
 #define MAX_CONN_INTERVAL MSEC_TO_UNITS(200, UNIT_1_25_MS)                          /**< Maximum acceptable connection interval (0.2 second). */
-#define SLAVE_LATENCY 0                                                             /**< Slave latency. */
+#define SLAVE_LATENCY 8                                                             /**< Slave latency. */
 #define CONN_SUP_TIMEOUT MSEC_TO_UNITS(4000, UNIT_10_MS)                            /**< Connection supervisory timeout (4 seconds). */
 
 #define SCREEN_SAVER_INTERVAL_MS (APP_TIMER_TICKS(5000, APP_TIMER_PRESCALER))
@@ -96,7 +97,7 @@
 #define SCHED_QUEUE_SIZE                30                                          /**< Maximum number of events in the scheduler queue. */
 
 #define DEAD_BEEF 0xDEADBEEF                                                        /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
-
+#define APP_IRQ_PRIORITY_HIGH   NRF_APP_PRIORITY_HIGH
 STATIC_ASSERT(IS_SRVC_CHANGED_CHARACT_PRESENT);                                     /** When having DFU Service support in application the Service Changed Characteristic should always be present. */  
 APP_TIMER_DEF(m_screen_saver_timer);                                                /**< Battery timer. */          
 
@@ -122,10 +123,6 @@ void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p
     //ble_debug_assert_handler(error_code, line_num, p_file_name);
 
     // On assert, the system can only recover with a reset.
-    char str2[8];
-    snprintf(str2, 8, "%x", error_code);
-    ssd1306_draw5x7Font(64,0,str2);
-    //ssd1306_display();
     
     NVIC_SystemReset();
 }
@@ -146,12 +143,26 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t *p_file_name)
     app_error_handler(DEAD_BEEF, line_num, p_file_name);
 }
 
+void screen_enter_sleep_mode(void)
+{
+    wchData.temporary.disp_awake= false;
+    ssd1306_displayOff();
+    ssd1306_spi_uninit();   //stop spi to save power
+}
+
+void screen_exit_sleep_mode(void)
+{
+    ssd1306_spi_init();     
+    wchData.temporary.disp_awake = true;
+    ssd1306_displayOn();
+    
+}
+
 void screen_saver(void *p_context){
     UNUSED_PARAMETER(p_context);
     if(!wchData.temporary.page_keep_awake)
     {
-        wchData.temporary.disp_awake= false;
-        ssd1306_displayOff();
+        screen_enter_sleep_mode();
     }
         //app_sched_event_put(NULL, NULL, screen_saver_appsh_handler);
 }
@@ -169,7 +180,6 @@ static void timers_init(void)
 static void timers_create(void)
 {
     // Create timers.
-	bas_timer_init();
     alarm_timer_init();
     
     uint8_t err_code = app_timer_create(&m_screen_saver_timer,
@@ -206,6 +216,9 @@ static void gap_params_init(void)
 
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
     APP_ERROR_CHECK(err_code);
+                                          
+    err_code = sd_ble_gap_tx_power_set(-4);
+    APP_ERROR_CHECK(err_code);
 
 }
 /**@snippet [Handling the data received over UART] */
@@ -230,6 +243,7 @@ static void nus_init(void)
 {
     uint32_t       err_code;
     ble_nus_init_t nus_init;
+    
     
     memset(&nus_init, 0, sizeof(nus_init));
 
@@ -308,7 +322,7 @@ static void application_timers_start(void)
     uint32_t err_code;
     err_code = app_timer_start(m_app_timer_id, TIMER_INTERVAL, NULL);
     APP_ERROR_CHECK(err_code); */
-		bas_timer_start();
+	//bas_timer_start();
 }
 
 /**@brief Function for putting the chip into sleep mode.
@@ -329,7 +343,7 @@ static void sleep_mode_enter(void)
     err_code = sd_power_system_off();
     APP_ERROR_CHECK(err_code);
     **/
-		bas_timer_stop();
+	///bas_timer_stop();
 }
 
 /**@brief Function for handling advertising events.
@@ -371,6 +385,7 @@ static void on_ble_evt(ble_evt_t *p_ble_evt)
         //err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
         //APP_ERROR_CHECK(err_code);
         m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
+        key_generate_evt(NORMAL_DISP_EVENT);
         break;
 
     case BLE_GAP_EVT_DISCONNECTED:
@@ -430,7 +445,7 @@ static void ble_stack_init(void)
     uint32_t err_code;
 
     // Initialize the SoftDevice handler module.
-    SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_250MS_CALIBRATION, NULL);
+    SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_4000MS_CALIBRATION, NULL);
 
 #if defined(S110) || defined(S130) || defined(S132)
     // Enable BLE stack.
@@ -450,6 +465,10 @@ static void ble_stack_init(void)
 
     // Register with the SoftDevice handler module for BLE events.
     err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
+    APP_ERROR_CHECK(err_code);
+    
+    // Enable DCDC mode to achieve lower power consuption
+    err_code = sd_power_dcdc_mode_set(NRF_POWER_DCDC_ENABLE);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -549,13 +568,33 @@ static void buttons_leds_init(bool *p_erase_bonds)
  */
 static void power_manage(void)
 {
+    __SEV();
+    __WFE();
+    __WFE();
+    /*
     uint32_t err_code = sd_app_evt_wait();
     APP_ERROR_CHECK(err_code);
+    */
 }
 
 static void scheduler_init(void)
 {
     APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
+}
+
+static void wdt_event_handler(void)
+{
+}
+
+static void wdt_init(void)
+{
+    uint32_t err_code;
+    nrf_drv_wdt_config_t config = NRF_DRV_WDT_DEAFULT_CONFIG;
+    err_code = nrf_drv_wdt_init(&config, wdt_event_handler);
+    APP_ERROR_CHECK(err_code);
+    err_code = nrf_drv_wdt_channel_alloc(&wchData.temporary.wdt_channel_id);
+    APP_ERROR_CHECK(err_code);
+    nrf_drv_wdt_enable();
 }
 
 void key_evt(uint8_t evt)
@@ -622,9 +661,9 @@ void key_evt(uint8_t evt)
     }
     else
     {
-        wchData.temporary.disp_awake = true;
-        wchData.temporary.page_current_screen = wchData.temporary.page_current_screen = wchData.persist.config.page_order[0];;
-        ssd1306_displayOn();
+        wchData.temporary.page_current_screen = wchData.temporary.page_current_screen = wchData.persist.config.page_order[0];
+        wchData.temporary.debug_wakeup_evt = evt;
+        screen_exit_sleep_mode();
         app_timer_start(m_screen_saver_timer, SCREEN_SAVER_INTERVAL_MS, NULL);
         
     }
@@ -656,14 +695,10 @@ void key_evt(uint8_t evt)
 
 void lotwatch_service_init(void)
 {  
-
-    //config_load_default();
     ssd1306_init();
     mma8452_init();
     temp_init();
     viber_init();
-    
-    
     
     rtc_init();
     key_init();
@@ -679,15 +714,16 @@ int main(void)
     uint32_t err_code;
     bool erase_bonds = false;
 
-    // Initialize.
+    // Initialize.   
     timers_init();
     scheduler_init();
-    
     timers_create();
     
     buttons_leds_init(&erase_bonds);
     ble_stack_init();
     device_manager_init(erase_bonds);
+    
+    wdt_init();
     
     config_init();
     
@@ -704,7 +740,7 @@ int main(void)
     APP_ERROR_CHECK(err_code);
 
     //for test only.
-    rtc_setTimeUnix(1489314775);
+    rtc_setTimeUnix(1491230946);
     alarm_test();
     
     page_disp_current();
@@ -720,8 +756,10 @@ int main(void)
         {
             ssd1306_display();
         }
+        wchData.temporary.wakeup_counter++;
         app_sched_execute();
         power_manage();
+        
     }
 }
 

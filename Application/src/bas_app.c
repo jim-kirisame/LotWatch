@@ -2,15 +2,17 @@
 #include <string.h>
 #include "bas_app.h"
 #include "app_error.h"
-#include "app_timer.h"
 #include "ble_bas.h"
 #include "nrf_adc.h"
 #include "key_app.h"
 
-ble_bas_t m_bas;                                    /**< Structure used to identify the battery service. */
-uint32_t currVot;                                   /**< Current Vottage of battery. */
+#define ADC_RESULT_QUEUE_SIZE 7
+uint16_t adc_result_queue[ADC_RESULT_QUEUE_SIZE];   /**中值滤波**/
+uint8_t adc_result_queue_index;         
+uint8_t tick = 0, tickCount = 1;
 
-APP_TIMER_DEF(m_battery_timer_meas_id);             /**< Battery timer. */
+ble_bas_t m_bas;                                    /**< Structure used to identify the battery service. */
+uint32_t currVot;                                   /**< Current Vottage of battery. */            
 
 /**@brief Function for initializing Battery Service.
  */
@@ -58,11 +60,42 @@ uint16_t adc2vottage(int32_t adcResult){
     // 22/122约等于2/11
     return (uint32_t)(adcResult * ADC_REF_VOLTAGE_IN_MILLIVOLTS * 11 >> 11);
 }
+
+uint16_t adc_result_calc()
+{
+    uint16_t min=0xFFFF,max=0x0000,curr;
+    uint32_t total = 0;
+    for(int i=0;i<ADC_RESULT_QUEUE_SIZE;i++)
+    {
+        curr = adc_result_queue[i];
+        if(curr > max)
+            max = curr;
+        if(curr < min)
+            min = curr;
+    }
+    for(int i=0;i<ADC_RESULT_QUEUE_SIZE;i++)
+    {
+        total += adc_result_queue[i];
+    }
+    total -= max;
+    total -= min;
+    return total / (ADC_RESULT_QUEUE_SIZE - 2);
+}
+
+
 void ADC_appsh_mes_evt_handler(void *p_event_data, uint16_t event_size)
 {
     UNUSED_PARAMETER(p_event_data);
     UNUSED_PARAMETER(event_size);
-    currVot = adc2vottage(nrf_adc_result_get());
+    
+    if(adc_result_queue_index >= ADC_RESULT_QUEUE_SIZE)
+    {
+        adc_result_queue_index = 0;
+        tickCount = 10;
+    }
+    adc_result_queue[adc_result_queue_index++] = nrf_adc_result_get();
+    
+    currVot = adc2vottage(adc_result_calc());
     bas_update_measure_data();
 }
 /** ADC测量完毕*/
@@ -75,29 +108,27 @@ void bas_measure_timer_handler(void *p_context){
     UNUSED_PARAMETER(p_context);
         nrf_adc_start();
 }
+void adc_tick()
+{
+    tick++;
+    if(tick >= tickCount)
+    {
+        tick = 0;
+        bas_measure_timer_handler(NULL);
+    }
+}
 /** 初始化电量服务 */
 void bas_app_init(){
     bas_init();
     adc_init();
 }
-/* 初始化电量测量时钟*/
-void bas_timer_init(){
-    uint8_t err_code = app_timer_create(&m_battery_timer_meas_id,
-                                APP_TIMER_MODE_REPEATED,
-                                bas_measure_timer_handler);
-    APP_ERROR_CHECK(err_code);
-}
 /* 启动电量测量时钟*/
 void bas_timer_start(){
-    uint32_t err_code;
-
-    err_code = app_timer_start(m_battery_timer_meas_id, BATTERY_MEASURE_INTERVAL_MS, NULL);
-    APP_ERROR_CHECK(err_code);
+        //do something
 }
 /*停止电量测量时钟*/
 void bas_timer_stop(){
-    uint32_t err_code = app_timer_stop(m_battery_timer_meas_id);
-    APP_ERROR_CHECK(err_code);
+    //do something
 }
 /*电量服务事件处理器*/
 void bas_ble_evt_dispatch(ble_evt_t * p_ble_evt){

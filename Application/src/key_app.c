@@ -99,7 +99,8 @@ void key_init(void)
 
     err_code = nrf_drv_gpiote_init();
     APP_ERROR_CHECK(err_code);
-
+    
+    //Touch key
     nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_LOTOHI(true);
     in_config.pull = NRF_GPIO_PIN_PULLDOWN;
 
@@ -108,11 +109,28 @@ void key_init(void)
 
     nrf_drv_gpiote_in_event_enable(KEY_PIN, true);
     
+    //acc interrupt
     nrf_drv_gpiote_in_config_t in_config_2 = GPIOTE_CONFIG_IN_SENSE_HITOLO(true);
-    in_config.pull = NRF_GPIO_PIN_PULLUP;
+    in_config_2.pull = NRF_GPIO_PIN_PULLUP;
     
     err_code = nrf_drv_gpiote_in_init(INT_PIN, &in_config_2, in_pin_handler);
     APP_ERROR_CHECK(err_code);
     
     nrf_drv_gpiote_in_event_enable(INT_PIN, true);
+    
+    //charging interrupt
+    nrf_drv_gpiote_in_config_t in_config_3 = GPIOTE_CONFIG_IN_SENSE_HITOLO(true);
+    in_config_3.pull = NRF_GPIO_PIN_PULLUP;
+    
+    err_code = nrf_drv_gpiote_in_init(CHRG_PIN, &in_config_3, in_pin_handler);
+    APP_ERROR_CHECK(err_code);
+    
+    nrf_drv_gpiote_in_event_enable(CHRG_PIN, true);
+    
+    //full interrupt
+    err_code = nrf_drv_gpiote_in_init(STDBY_PIN, &in_config_3, in_pin_handler);
+    APP_ERROR_CHECK(err_code);
+    
+    nrf_drv_gpiote_in_event_enable(STDBY_PIN, true);
 }
+

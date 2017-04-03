@@ -1,6 +1,6 @@
 #include "main.h"
 #include "comm_protocol.h"
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "crc16.h"
@@ -8,6 +8,7 @@
 #include "rtc_app.h"
 #include "step_counter.h"
 #include "config_storage.h"
+#include "mma8452.h"
 
 uint8_t comm_send_buff[128];
 uint8_t comm_send_buff_len = 0;
@@ -248,6 +249,7 @@ void comm_recv_packet_L1(packet_L1 * data){
     switch(data->operation){
         case TIME:
             rtc_setTimeUnix((data->data[0]<<24) + (data->data[1]<<16) + (data->data[2]<<8) + (data->data[3]) );
+            step_health_algorithm_reload();
             comm_send_packet_L0(EVENT_SUCCESS);
         break;
         case ALARM:
@@ -354,7 +356,7 @@ void comm_proto_send_appsh_handler(void *p_event_data, uint16_t event_size)
 {
     UNUSED_PARAMETER(p_event_data);
     UNUSED_PARAMETER(event_size);
-    ble_nus_string_send(&m_nus, comm_send_buff, comm_send_buff_len);
+    ble_nus_string_send(&m_nus, &comm_send_buff[0], comm_send_buff_len);
     comm_send_flag = false;
     comm_send_buff_len = 0;
 }
@@ -368,7 +370,7 @@ void comm_send_packet_L0(enum protocol_operation operation){
     
     if(comm_send_buff_len > 123)
         return;
-    memcpy(&comm_send_buff[comm_send_buff_len], &p, sizeof(packet_L0));
+    memcpy(&comm_send_buff[comm_send_buff_len], &p, sizeof(p));
     comm_send_buff_len += sizeof(packet_L0);
     
     if(!comm_send_flag)
@@ -412,6 +414,22 @@ void comm_send_packet_L2(enum protocol_operation operation, uint8_t * data){
         return;
     memcpy(&comm_send_buff[comm_send_buff_len], &p, sizeof(packet_L2));
     comm_send_buff_len += sizeof(packet_L2);
+    
+    if(!comm_send_flag)
+    {
+        comm_send_flag = true;
+        app_sched_event_put(NULL, NULL, comm_proto_send_appsh_handler);
+    }
+}
+
+void comm_send_acc_data(mma8452_acc_data data)
+{
+    if(comm_send_buff_len > 128 - sizeof(data))
+        return;
+
+    memcpy(&comm_send_buff[comm_send_buff_len], &data, sizeof(data));
+    comm_send_buff_len += sizeof(data);
+    comm_send_buff[comm_send_buff_len++] = 0;
     
     if(!comm_send_flag)
     {

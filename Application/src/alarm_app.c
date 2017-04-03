@@ -26,9 +26,6 @@ void alarm_timer_init(void)
 
 void alarm_test(void)
 {
-    wchData.persist.config.alarm_data[0].hour = 18;
-    wchData.persist.config.alarm_data[0].minute = 33;
-    wchData.persist.config.alarm_data[0].repeat = 0xFF;
 }
 
 void alarm_timer_start(void)

@@ -6,6 +6,7 @@
 #include "step_counter.h"
 #include "comm_protocol.h"
 #include "app_util.h"
+#include "nrf_drv_wdt.h"
 
 #define PERSISTENT_DATA_VERSION 0x00010001
 #define MAX_ALARM_COUNT 5
@@ -55,6 +56,8 @@ typedef struct watch_temporary_data
     
     char                pair_passcode[7];                       //配对用密码
     
+    uint8_t             debug_wakeup_evt;                        //此次唤醒的事件
+    
     uint8_t             page_current_screen;                    //当前显示页面
     _Bool               page_should_render_every_frame;         //是否渲染每帧
     _Bool               page_keep_awake;                        //是否保持唤醒
@@ -63,6 +66,8 @@ typedef struct watch_temporary_data
     
     packet_message      message;                                //下发通知信息
     packet_walkdata     step_lastday;                           //计步器昨日数据
+    uint32_t            wakeup_counter;                         //WFE唤醒计数器
+    nrf_drv_wdt_channel_id wdt_channel_id;
 
 } watch_temporary_data;
 

@@ -64,16 +64,18 @@ void page_disp_debug_page(void)
     ssd1306_clearDisplay();
     
     snprintf(str2, 24, "acc_x: %d", acc_data.x);
-    ssd1306_draw5x7Font(0,1,str2);
+    ssd1306_draw5x7Font(0,0,str2);
     snprintf(str2, 24, "acc_y: %d", acc_data.y);
-    ssd1306_draw5x7Font(0,2,str2);
+    ssd1306_draw5x7Font(0,1,str2);
     snprintf(str2, 24, "acc_z: %d", acc_data.z);
-    ssd1306_draw5x7Font(0,3,str2);
+    ssd1306_draw5x7Font(0,2,str2);
     snprintf(str2, 24, "temp: %.2f deg", wchData.temporary.temp_current_temp);
-    ssd1306_draw5x7Font(0,4,str2);
+    ssd1306_draw5x7Font(0,3,str2);
     snprintf(str2, 24, "%d-%d-%d %d:%d:%d %s", date.year, date.month, date.day, date.hour, date.minute, date.second, weekstr);
-    ssd1306_draw5x7Font(0,5,str2);
+    ssd1306_draw5x7Font(0,4,str2);
     snprintf(str2, 24, "bat: %d mV", bas_get_cur_bat_vot());
+    ssd1306_draw5x7Font(0,5,str2);
+    snprintf(str2, 24, "evt:%02X, tim:%d", wchData.temporary.debug_wakeup_evt, wchData.temporary.wakeup_counter);
     ssd1306_draw5x7Font(0,6,str2);
 }
 
@@ -88,14 +90,16 @@ void page_disp_step_page(void)
     char str[8];
     ssd1306_clearDisplay();
     snprintf(str,8,"%d",wchData.persist.step_walkdata.walking_slow);
-    ssd1306_draw16Font(str,37,1);
-    ssd1306_drawIcon16(ICON_WALK_SLOW, 17, 1);
+    ssd1306_draw16Font(str,37,0);
+    ssd1306_drawIcon16(ICON_WALK_SLOW, 17, 0);
     snprintf(str,8,"%d",wchData.persist.step_walkdata.walking_fast);
-    ssd1306_draw16Font(str,37,3);
-    ssd1306_drawIcon16(ICON_WALK_FAST, 17, 3);
+    ssd1306_draw16Font(str,37,2);
+    ssd1306_drawIcon16(ICON_WALK_FAST, 17, 2);
     snprintf(str,8,"%d",wchData.persist.step_walkdata.run);
-    ssd1306_draw16Font(str,37,5);
-    ssd1306_drawIcon16(ICON_RUN, 17, 5);
+    ssd1306_draw16Font(str,37,4);
+    ssd1306_drawIcon16(ICON_RUN, 17, 4);
+    snprintf(str,8,"%d km",wchData.persist.step_walkdata.distance / 10000);
+    ssd1306_draw16Font(str,17,6);
 }
 void page_disp_alarming_page(void)
 {

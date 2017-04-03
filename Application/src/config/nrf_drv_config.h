@@ -29,7 +29,7 @@
 #endif
 
 /* TIMER */
-#define TIMER0_ENABLED 1
+#define TIMER0_ENABLED 0
 
 #if (TIMER0_ENABLED == 1)
 #define TIMER0_CONFIG_FREQUENCY    NRF_TIMER_FREQ_16MHz
@@ -98,7 +98,7 @@
 #define RTC0_INSTANCE_INDEX      0
 #endif
 
-#define RTC1_ENABLED 0
+#define RTC1_ENABLED 1
 
 #if (RTC1_ENABLED == 1)
 #define RTC1_CONFIG_FREQUENCY    32768
@@ -322,7 +322,7 @@
 #endif
 
 /* WDT */
-#define WDT_ENABLED 0
+#define WDT_ENABLED 1
 
 #if (WDT_ENABLED == 1)
 #define WDT_CONFIG_BEHAVIOUR     NRF_WDT_BEHAVIOUR_RUN_SLEEP

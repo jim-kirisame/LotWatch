@@ -45,7 +45,6 @@ public class SportFragment extends Fragment {
                 DrawTestData();
             }
         });
-
     }
 
     public void DrawTestData()

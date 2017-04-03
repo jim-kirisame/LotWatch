@@ -32,10 +32,10 @@ void mma8452_chip_init(void){
     mma8452_i2c_write(0x0e, 0x00); //2g acc & no 
     mma8452_i2c_write(0x0f, 0x00); //Pulse_LPF_EN = 0
     mma8452_i2c_write(0x21, 0x3c); //double tap and single tap on z-axis only
-    mma8452_i2c_write(0x23, 0x30); //Set x Threshold to 32 counts or 2g
-    mma8452_i2c_write(0x24, 0x30); //Set y Threshold to 32 counts or 2g
-    mma8452_i2c_write(0x25, 0x20); //Set Z Threshold to 32 counts or 2g
-    mma8452_i2c_write(0x26, 0x0a); //50ms / 5ms = 10 @50hz, Normal, Pulse_LPF_EN
+    mma8452_i2c_write(0x23, 0x40); //Set x Threshold to 32 counts or 2g
+    mma8452_i2c_write(0x24, 0x40); //Set y Threshold to 32 counts or 2g
+    mma8452_i2c_write(0x25, 0x1c); //Set Z Threshold to 32 counts or 2g
+    mma8452_i2c_write(0x26, 0x06); //30ms / 5ms = 6 @50hz, Normal, Pulse_LPF_EN
     mma8452_i2c_write(0x27, 0x14); //200ms / 10ms = 20
     mma8452_i2c_write(0x28, 0x0e); //300ms / 10ms = 30
     

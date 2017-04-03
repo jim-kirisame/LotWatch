@@ -3,10 +3,13 @@
 #include "app_error.h"
 #include "app_timer.h"
 #include "nrf_drv_config.h"
-#include "nrf_drv_rtc.h"
 #include "nrf_drv_clock.h"
 #include "alarm_app.h"
 #include "step_counter.h"
+#include "config_storage.h"
+#include "bas_app.h"
+#include "nrf_drv_wdt.h"
+
 #include <string.h>
 
 #define COMPARE_COUNTERTIME  (3UL)                                        /**< Get Compare event COMPARE_TIME seconds after the counter starts from 0. */
@@ -17,7 +20,6 @@ uint32_t rtc_localts;
 
 static const uint8_t rtc_dayOfMonthTable[] = {31,28,31,30,31,30,31,31,30,31,30,31};
 static const char rtc_weekStrTable[][4] = {"SUN", "MON", "TUE", "WED", "THR", "FRI", "SAT"};
-const nrf_drv_rtc_t rtc = NRF_DRV_RTC_INSTANCE(0); /**< Declaring an instance of nrf_drv_rtc for RTC0. */
 
 static date_t date_temp;
 
@@ -26,61 +28,29 @@ void rtc_add1s(void)
     rtc_localts++;
 }
 
-/** @brief: Function for handling the RTC0 interrupts.
- * Triggered on TICK and COMPARE0 match.
-
-static void rtc_handler(nrf_drv_rtc_int_type_t int_type)
-{
-    if (int_type == NRF_DRV_RTC_INT_TICK)
-    {
-        rtc_add1s();
-    }
-}
- */
-
-
 void rtc_timer_handler(void *p_context){
     UNUSED_PARAMETER(p_context);
     
     date_t date;
-    
+    nrf_drv_wdt_channel_feed(wchData.temporary.wdt_channel_id);
     rtc_add1s();
     rtc_getTime(&date);
     if(date.minute != date_temp.minute)
     {
         alarm_check(&date);
     }
-    if(date.day != date_temp.day)
+    if(date.day != date_temp.day && date.hour == 0 && date.minute == 0 && date.second == 0)
     {
         step_nextday();
     }
     date_temp = date;
+    adc_tick();
 }
 
 void rtc_init()
 {
     uint32_t err_code;
     
-    /**
-    //err_code = nrf_drv_clock_init(NULL);
-    //APP_ERROR_CHECK(err_code);
-
-    //nrf_drv_clock_lfclk_request();
-
-    //Initialize RTC instance
-    err_code = nrf_drv_rtc_init(&rtc, NULL, rtc_handler);
-    APP_ERROR_CHECK(err_code);
-
-    //Enable tick event & interrupt
-    nrf_drv_rtc_tick_enable(&rtc,true);
-
-    //Set compare channel to trigger interrupt after COMPARE_COUNTERTIME seconds
-    //err_code = nrf_drv_rtc_cc_set(&rtc, 0, COMPARE_COUNTERTIME*RTC0_CONFIG_FREQUENCY, true);
-    //APP_ERROR_CHECK(err_code);
-
-    //Power on RTC instance
-    nrf_drv_rtc_enable(&rtc);
-    **/
     err_code = app_timer_create(&m_rtc_timer,
                                 APP_TIMER_MODE_REPEATED,
                                 rtc_timer_handler);
