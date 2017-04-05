@@ -5,6 +5,7 @@
 #include "ble_bas.h"
 #include "nrf_adc.h"
 #include "key_app.h"
+#include "config_storage.h"
 
 #define ADC_RESULT_QUEUE_SIZE 7
 uint16_t adc_result_queue[ADC_RESULT_QUEUE_SIZE];   /**中值滤波**/
@@ -151,7 +152,8 @@ uint8_t bas_vot2lvl(uint16_t lvl){
 }
 /*获取当前电量*/
 uint8_t bas_get_cur_bat_lvl(){
-    return bas_vot2lvl(currVot);
+    wchData.temporary.battery_level = bas_vot2lvl(currVot);
+    return wchData.temporary.battery_level;
 }
 /*获取当前电压*/
 uint16_t bas_get_cur_bat_vot(){

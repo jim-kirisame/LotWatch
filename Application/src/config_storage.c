@@ -47,7 +47,7 @@ void config_load_default(void)
     wchData.persist.config.alarm_delay_max_count = 3;
     wchData.persist.config.alarm_delay_time = 5;
     wchData.persist.config.alarm_vibra_time = 10;
-    wchData.persist.config.debug_enable = true;
+    wchData.persist.config.debug_enable = false;
     wchData.persist.config.display_sleep_time = 5;
     wchData.persist.config.step_userdata.age = 18;
     wchData.persist.config.step_userdata.height = 170;

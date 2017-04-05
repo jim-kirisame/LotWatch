@@ -42,28 +42,12 @@ void key_appsh_evt_handler(void *p_event_data, uint16_t event_size)
             event = TOUCH_KEY_EVENT;
             break;
         case CHRG_PIN:
-            if(temp->action == NRF_GPIOTE_POLARITY_HITOLO)
-            {
-                event = CHARGING_EVENT;
-                charge_charging = true;
-            }
-            else
-            {
-                event = NOT_CHARGING_EVENT;
-                charge_charging = false;
-            }
+            event = CHARGING_EVENT;
+            charge_charging = true;
             break;
         case STDBY_PIN:
-            if(temp->action == NRF_GPIOTE_POLARITY_HITOLO)
-            {
-                event = FULLED_EVENT;
-                charge_fulled = true;
-            }
-            else
-            {
-                event = NOT_FULLED_EVENT;
-                charge_fulled = false;
-            }
+            event = FULLED_EVENT;
+            charge_fulled = true;
             break;
         default:
             event = (enum key_evt_type)temp->pin;

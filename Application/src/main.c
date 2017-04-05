@@ -66,8 +66,12 @@
 
 #define DEVICE_NAME "LotWatch"                                                      /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME "Lotlab"                                                  /**< Manufacturer. Will be passed to Device Information Service. */
-#define APP_ADV_INTERVAL 300                                                        /**< The advertising interval (in units of 0.625 ms. This value corresponds to 25 ms). */
-#define APP_ADV_TIMEOUT_IN_SECONDS 0                                                /**< The advertising timeout in units of seconds. */
+
+#define APP_ADV_FAST_INTERVAL 160                                                   /**< The advertising interval (in units of 0.625 ms. This value corresponds to 25 ms). */
+#define APP_ADV_FAST_TIMEOUT_IN_SECONDS 60                                          /**< The advertising timeout in units of seconds. */
+
+#define APP_ADV_SLOW_INTERVAL 1600                                                  /**< The advertising interval (in units of 0.625 ms. This value corresponds to 25 ms). */
+#define APP_ADV_SLOW_TIMEOUT_IN_SECONDS 300                                         /**< The advertising timeout in units of seconds. */
 
 #define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
 
@@ -110,6 +114,7 @@ static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUI
                                    {BLE_UUID_NUS_SERVICE,                BLE_UUID_TYPE_BLE}}; /**< Universally unique service identifiers. */
                                    
 ble_nus_t                        m_nus;                                             /**< Structure to identify the Nordic UART Service. */                                  
+ble_adv_mode_t                          m_adv_state;
                                    
 void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name)
 {
@@ -149,13 +154,13 @@ void screen_enter_sleep_mode(void)
     ssd1306_displayOff();
     ssd1306_spi_uninit();   //stop spi to save power
 }
-
+static void adv_start_switch(ble_adv_mode_t mode);
 void screen_exit_sleep_mode(void)
 {
     ssd1306_spi_init();     
     wchData.temporary.disp_awake = true;
     ssd1306_displayOn();
-    
+    adv_start_switch(BLE_ADV_MODE_FAST);
 }
 
 void screen_saver(void *p_context){
@@ -329,9 +334,10 @@ static void application_timers_start(void)
  *
  * @note This function will not return.
  */
+/*
 static void sleep_mode_enter(void)
 {
-    /**
+    
     uint32_t err_code = bsp_indication_set(BSP_INDICATE_IDLE);
     APP_ERROR_CHECK(err_code);
 
@@ -342,8 +348,17 @@ static void sleep_mode_enter(void)
     // Go to system-off mode (this function will not return; wakeup will cause a reset).
     err_code = sd_power_system_off();
     APP_ERROR_CHECK(err_code);
-    **/
+    
 	///bas_timer_stop();
+}*/
+static void adv_start_switch(ble_adv_mode_t mode)
+{
+    uint32_t err_code;
+
+    m_adv_state = mode;
+    err_code = ble_advertising_start(mode);
+    
+    APP_ERROR_CHECK(err_code);
 }
 
 /**@brief Function for handling advertising events.
@@ -363,7 +378,8 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
         //APP_ERROR_CHECK(err_code);
         break;
     case BLE_ADV_EVT_IDLE:
-        sleep_mode_enter();
+        //adv_start_switch(NULL);
+        //sleep_mode_enter();
         break;
     default:
         break;
@@ -542,15 +558,18 @@ static void advertising_init(void)
 
     advdata.name_type = BLE_ADVDATA_FULL_NAME;
     advdata.include_appearance = true;
-    advdata.flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+    advdata.flags = BLE_GAP_ADV_FLAGS_LE_ONLY_LIMITED_DISC_MODE;
     advdata.uuids_complete.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]);
     advdata.uuids_complete.p_uuids = m_adv_uuids;
 
     ble_adv_modes_config_t options = {0};
     options.ble_adv_fast_enabled = BLE_ADV_FAST_ENABLED;
-    options.ble_adv_fast_interval = APP_ADV_INTERVAL;
-    options.ble_adv_fast_timeout = APP_ADV_TIMEOUT_IN_SECONDS;
-
+    options.ble_adv_fast_interval = APP_ADV_FAST_INTERVAL;
+    options.ble_adv_fast_timeout = APP_ADV_FAST_TIMEOUT_IN_SECONDS;
+    options.ble_adv_slow_enabled = true;
+    options.ble_adv_slow_interval = APP_ADV_SLOW_INTERVAL;
+    options.ble_adv_slow_interval = APP_ADV_FAST_TIMEOUT_IN_SECONDS;
+    
     err_code = ble_advertising_init(&advdata, NULL, &options, on_adv_evt, NULL);
     APP_ERROR_CHECK(err_code);
 }
@@ -711,7 +730,7 @@ void lotwatch_service_init(void)
  */
 int main(void)
 {
-    uint32_t err_code;
+    //uint32_t err_code;
     bool erase_bonds = false;
 
     // Initialize.   
@@ -736,12 +755,10 @@ int main(void)
 
     // Start execution.
     application_timers_start();
-    err_code = ble_advertising_start(BLE_ADV_MODE_FAST);
-    APP_ERROR_CHECK(err_code);
+    adv_start_switch(BLE_ADV_MODE_FAST);
 
     //for test only.
-    rtc_setTimeUnix(1491230946);
-    alarm_test();
+    rtc_setTimeUnix(1483200000);
     
     page_disp_current();
     
