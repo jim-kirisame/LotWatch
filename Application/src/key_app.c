@@ -25,10 +25,10 @@ void key_appsh_evt_handler(void *p_event_data, uint16_t event_size)
         case INT_PIN:
             switch(mma8452_read_int())
             {
-                case 0xC4:
+                case 0xC0:
                     event = TAP_ONCE_EVENT;
                     break;
-                case 0xCC:
+                case 0xC8:
                     event = TAP_TWICE_EVENT;
                     break;
                 case 0xA2:
@@ -85,16 +85,16 @@ void key_init(void)
     APP_ERROR_CHECK(err_code);
     
     //Touch key
-    nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_LOTOHI(true);
+    nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_LOTOHI(false);
     in_config.pull = NRF_GPIO_PIN_PULLDOWN;
-
+    
     err_code = nrf_drv_gpiote_in_init(KEY_PIN, &in_config, in_pin_handler);
     APP_ERROR_CHECK(err_code);
 
     nrf_drv_gpiote_in_event_enable(KEY_PIN, true);
     
     //acc interrupt
-    nrf_drv_gpiote_in_config_t in_config_2 = GPIOTE_CONFIG_IN_SENSE_HITOLO(true);
+    nrf_drv_gpiote_in_config_t in_config_2 = GPIOTE_CONFIG_IN_SENSE_HITOLO(false);
     in_config_2.pull = NRF_GPIO_PIN_PULLUP;
     
     err_code = nrf_drv_gpiote_in_init(INT_PIN, &in_config_2, in_pin_handler);
@@ -103,7 +103,7 @@ void key_init(void)
     nrf_drv_gpiote_in_event_enable(INT_PIN, true);
     
     //charging interrupt
-    nrf_drv_gpiote_in_config_t in_config_3 = GPIOTE_CONFIG_IN_SENSE_HITOLO(true);
+    nrf_drv_gpiote_in_config_t in_config_3 = GPIOTE_CONFIG_IN_SENSE_HITOLO(false);
     in_config_3.pull = NRF_GPIO_PIN_PULLUP;
     
     err_code = nrf_drv_gpiote_in_init(CHRG_PIN, &in_config_3, in_pin_handler);

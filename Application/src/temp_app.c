@@ -3,8 +3,9 @@
 #include "nrf_temp.h"
 #include "config_storage.h"
 
-void temp_get(void)
+void temp_get_real(void)
 {
+    
     NRF_TEMP->TASKS_START = 1; /** Start the temperature measurement. */
 
     /* Busy wait while temperature measurement is not finished, you can skip waiting if you enable interrupt for DATARDY event and read the result in the interrupt. */
@@ -20,10 +21,14 @@ void temp_get(void)
 
     /**@note Workaround for PAN_028 rev2.0A anomaly 30 - TEMP: Temp module analog front end does not power down when DATARDY event occurs. */
     NRF_TEMP->TASKS_STOP = 1; /** Stop the temperature measurement. */
-
-
 }
+void temp_get(void)
+{
+    //do nothing
+    
+}
+
 void temp_init(void)
 {
-    nrf_temp_init();
+    //nrf_temp_init();
 }

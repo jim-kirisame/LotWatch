@@ -40,7 +40,7 @@
 #include "app_scheduler.h"
 #include "device_manager.h"
 #include "pstorage.h"
-#include "app_trace.h"
+//#include "app_trace.h"
 #include "nrf_drv_wdt.h"
 
 #include "ble_nus.h"
@@ -68,10 +68,10 @@
 #define MANUFACTURER_NAME "Lotlab"                                                  /**< Manufacturer. Will be passed to Device Information Service. */
 
 #define APP_ADV_FAST_INTERVAL 160                                                   /**< The advertising interval (in units of 0.625 ms. This value corresponds to 25 ms). */
-#define APP_ADV_FAST_TIMEOUT_IN_SECONDS 60                                          /**< The advertising timeout in units of seconds. */
+#define APP_ADV_FAST_TIMEOUT_IN_SECONDS 20                                          /**< The advertising timeout in units of seconds. */
 
 #define APP_ADV_SLOW_INTERVAL 1600                                                  /**< The advertising interval (in units of 0.625 ms. This value corresponds to 25 ms). */
-#define APP_ADV_SLOW_TIMEOUT_IN_SECONDS 300                                         /**< The advertising timeout in units of seconds. */
+#define APP_ADV_SLOW_TIMEOUT_IN_SECONDS 120                                         /**< The advertising timeout in units of seconds. */
 
 #define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
 
@@ -102,6 +102,7 @@
 
 #define DEAD_BEEF 0xDEADBEEF                                                        /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 #define APP_IRQ_PRIORITY_HIGH   NRF_APP_PRIORITY_HIGH
+
 STATIC_ASSERT(IS_SRVC_CHANGED_CHARACT_PRESENT);                                     /** When having DFU Service support in application the Service Changed Characteristic should always be present. */  
 APP_TIMER_DEF(m_screen_saver_timer);                                                /**< Battery timer. */          
 
@@ -110,11 +111,10 @@ static dm_application_instance_t m_app_handle;                                  
 uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                                   /**< Handle of the current connection. */
 
 static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE},
-                                   {BLE_UUID_BATTERY_SERVICE,            BLE_UUID_TYPE_BLE},
                                    {BLE_UUID_NUS_SERVICE,                BLE_UUID_TYPE_BLE}}; /**< Universally unique service identifiers. */
                                    
 ble_nus_t                        m_nus;                                             /**< Structure to identify the Nordic UART Service. */                                  
-ble_adv_mode_t                          m_adv_state;
+int8_t                   m_adv_state;
                                    
 void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name)
 {
@@ -128,7 +128,7 @@ void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p
     //ble_debug_assert_handler(error_code, line_num, p_file_name);
 
     // On assert, the system can only recover with a reset.
-    
+    viber_action(error_code);
     NVIC_SystemReset();
 }
                                    
@@ -354,11 +354,11 @@ static void sleep_mode_enter(void)
 static void adv_start_switch(ble_adv_mode_t mode)
 {
     uint32_t err_code;
-
-    m_adv_state = mode;
+    if(m_adv_state != 0)
+        return;
     err_code = ble_advertising_start(mode);
-    
     APP_ERROR_CHECK(err_code);
+    m_adv_state = 1;
 }
 
 /**@brief Function for handling advertising events.
@@ -401,11 +401,14 @@ static void on_ble_evt(ble_evt_t *p_ble_evt)
         //err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
         //APP_ERROR_CHECK(err_code);
         m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
-        key_generate_evt(NORMAL_DISP_EVENT);
+        m_adv_state = -1;                   //no longer needs to adv
+        //key_generate_evt(NORMAL_DISP_EVENT);
         break;
 
     case BLE_GAP_EVT_DISCONNECTED:
         m_conn_handle = BLE_CONN_HANDLE_INVALID;
+        m_adv_state = 0;                    //adv now off
+        adv_start_switch(BLE_ADV_MODE_FAST);
         break;
     
     case BLE_GAP_EVT_PASSKEY_DISPLAY:    
@@ -413,6 +416,12 @@ static void on_ble_evt(ble_evt_t *p_ble_evt)
             snprintf(str2, 8, "%s%c", str2, p_ble_evt->evt.gap_evt.params.passkey_display.passkey[i]);
         snprintf(wchData.temporary.pair_passcode, 7, "%s", str2);
         key_generate_evt(PASSCODE_DISP_EVENT);
+        break;
+     case BLE_GAP_EVT_TIMEOUT:
+        if (p_ble_evt->evt.gap_evt.params.timeout.src == BLE_GAP_TIMEOUT_SRC_ADVERTISING)
+        {
+            m_adv_state = 0; // If advertising times out
+        }
         break;
     
     default:
@@ -436,7 +445,6 @@ static void ble_evt_dispatch(ble_evt_t *p_ble_evt)
     on_ble_evt(p_ble_evt);
     ble_advertising_on_ble_evt(p_ble_evt);
     dfu_ble_evt_dispatch(p_ble_evt);
-	bas_ble_evt_dispatch(p_ble_evt);
 }
 
 /**@brief Function for dispatching a system event to interested modules.
@@ -486,6 +494,10 @@ static void ble_stack_init(void)
     // Enable DCDC mode to achieve lower power consuption
     err_code = sd_power_dcdc_mode_set(NRF_POWER_DCDC_ENABLE);
     APP_ERROR_CHECK(err_code);
+    
+    // using low power mode
+    err_code = sd_power_mode_set(NRF_POWER_MODE_LOWPWR);
+    APP_ERROR_CHECK(err_code);
 }
 
 
@@ -505,8 +517,14 @@ static uint32_t device_manager_evt_handler(dm_handle_t const *p_handle,
         {
             err_code = sd_ble_gap_disconnect(m_conn_handle , BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
             APP_ERROR_CHECK(err_code);
+            key_generate_evt(NORMAL_DISP_EVENT);
             return NRF_SUCCESS;
         }
+        case BLE_GAP_SEC_STATUS_SUCCESS:
+        case BLE_GAP_SEC_STATUS_TIMEOUT:
+             key_generate_evt(NORMAL_DISP_EVENT);
+             return NRF_SUCCESS;
+            
         default:
             APP_ERROR_CHECK(event_result);
             return NRF_SUCCESS;
@@ -587,13 +605,16 @@ static void buttons_leds_init(bool *p_erase_bonds)
  */
 static void power_manage(void)
 {
+#define NATIVE_SLEEP
+#ifdef NATIVE_SLEEP
     __SEV();
     __WFE();
     __WFE();
-    /*
+#else  
     uint32_t err_code = sd_app_evt_wait();
     APP_ERROR_CHECK(err_code);
-    */
+#endif
+#undef NATIVE_SLEEP
 }
 
 static void scheduler_init(void)
@@ -609,6 +630,7 @@ static void wdt_init(void)
 {
     uint32_t err_code;
     nrf_drv_wdt_config_t config = NRF_DRV_WDT_DEAFULT_CONFIG;
+    config.reload_value = 5000;
     err_code = nrf_drv_wdt_init(&config, wdt_event_handler);
     APP_ERROR_CHECK(err_code);
     err_code = nrf_drv_wdt_channel_alloc(&wchData.temporary.wdt_channel_id);
@@ -680,11 +702,10 @@ void key_evt(uint8_t evt)
     }
     else
     {
-        wchData.temporary.page_current_screen = wchData.temporary.page_current_screen = wchData.persist.config.page_order[0];
+        wchData.temporary.page_current_screen = wchData.persist.config.page_order[0];
         wchData.temporary.debug_wakeup_evt = evt;
         screen_exit_sleep_mode();
         app_timer_start(m_screen_saver_timer, SCREEN_SAVER_INTERVAL_MS, NULL);
-        
     }
     
     switch(evt)
@@ -761,10 +782,13 @@ int main(void)
     rtc_setTimeUnix(1483200000);
     
     page_disp_current();
+    app_timer_start(m_screen_saver_timer, SCREEN_SAVER_INTERVAL_MS, NULL);
     
     // Enter main loop.
     for (;;)
     {
+        app_sched_execute();
+        
         if(wchData.temporary.page_should_render_every_frame)
         {
             page_disp_current();
@@ -773,8 +797,10 @@ int main(void)
         {
             ssd1306_display();
         }
-        wchData.temporary.wakeup_counter++;
-        app_sched_execute();
+        else
+        {
+            wchData.temporary.wakeup_counter++;
+        }
         power_manage();
         
     }

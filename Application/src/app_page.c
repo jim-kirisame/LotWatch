@@ -63,20 +63,23 @@ void page_disp_debug_page(void)
     
     ssd1306_clearDisplay();
     
-    snprintf(str2, 24, "acc_x: %d", acc_data.x);
+    snprintf(str2, 24, "Acc_X: %d", acc_data.x);
     ssd1306_draw5x7Font(0,0,str2);
-    snprintf(str2, 24, "acc_y: %d", acc_data.y);
+    snprintf(str2, 24, "Acc_Y: %d", acc_data.y);
     ssd1306_draw5x7Font(0,1,str2);
-    snprintf(str2, 24, "acc_z: %d", acc_data.z);
+    snprintf(str2, 24, "Acc_Z: %d", acc_data.z);
     ssd1306_draw5x7Font(0,2,str2);
-    snprintf(str2, 24, "temp: %.2f deg", wchData.temporary.temp_current_temp);
+    //snprintf(str2, 24, "temp: %.2f deg", wchData.temporary.temp_current_temp);
+    snprintf(str2, 24, "Temp: disable");
     ssd1306_draw5x7Font(0,3,str2);
     snprintf(str2, 24, "%d-%d-%d %d:%d:%d %s", date.year, date.month, date.day, date.hour, date.minute, date.second, weekstr);
     ssd1306_draw5x7Font(0,4,str2);
-    snprintf(str2, 24, "bat: %d mV", bas_get_cur_bat_vot());
+    snprintf(str2, 24, "bat: %d mV %02d%%", bas_get_cur_bat_vot(),wchData.temporary.battery_level);
     ssd1306_draw5x7Font(0,5,str2);
-    snprintf(str2, 24, "evt:%02X, tim:%d", wchData.temporary.debug_wakeup_evt, wchData.temporary.wakeup_counter);
+    snprintf(str2, 24, "Wakeup Event: %02X", wchData.temporary.debug_wakeup_evt);
     ssd1306_draw5x7Font(0,6,str2);
+    snprintf(str2, 24, "Chip Wakeup: %d", wchData.temporary.wakeup_counter);
+    ssd1306_draw5x7Font(0,7,str2);
 }
 
 void page_disp_pass_page()
@@ -177,7 +180,7 @@ void page_disp_current()
         case CONN_PASS_PAGE:
             page_disp_pass_page();
             wchData.temporary.page_should_render_every_frame = false;
-            wchData.temporary.page_keep_awake = false;
+            wchData.temporary.page_keep_awake = true;
             break;
         case WALK_COUNTER_PAGE:
             page_disp_step_page();

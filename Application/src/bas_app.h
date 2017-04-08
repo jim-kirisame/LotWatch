@@ -20,7 +20,6 @@ uint8_t bas_get_cur_bat_lvl(void);
 
 void bas_app_init(void);
 void adc_tick(void);
-void bas_ble_evt_dispatch(ble_evt_t * p_ble_evt);
 uint8_t bas_vot2lvl(uint16_t lvl);
 
 #endif

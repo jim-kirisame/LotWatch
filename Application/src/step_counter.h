@@ -3,7 +3,7 @@
 
 #include "health-algorithm.h"
 #include <stdint.h>
-#define ACC_MEASURE_HZ 12
+#define ACC_MEASURE_HZ 5
 #define ACC_MEASURE_TIMER_MS (APP_TIMER_TICKS(1000/ACC_MEASURE_HZ, APP_TIMER_PRESCALER)) //10hz
 #define SLEEP_DATA_COUNT 10
 

@@ -15,29 +15,6 @@ uint8_t tick = 0, tickCount = 1;
 ble_bas_t m_bas;                                    /**< Structure used to identify the battery service. */
 uint32_t currVot;                                   /**< Current Vottage of battery. */            
 
-/**@brief Function for initializing Battery Service.
- */
-void bas_init(void)
-{
-    uint32_t err_code;
-    ble_bas_init_t bas_init_obj;
-
-    memset(&bas_init_obj, 0, sizeof(bas_init_obj));
-
-    bas_init_obj.evt_handler = NULL;
-    bas_init_obj.support_notification = true;
-    bas_init_obj.p_report_ref = NULL;
-    bas_init_obj.initial_batt_level = 100;
-
-    BLE_GAP_CONN_SEC_MODE_SET_ENC_NO_MITM(&bas_init_obj.battery_level_char_attr_md.cccd_write_perm);
-    BLE_GAP_CONN_SEC_MODE_SET_ENC_NO_MITM(&bas_init_obj.battery_level_char_attr_md.read_perm);
-    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&bas_init_obj.battery_level_char_attr_md.write_perm);
-
-    BLE_GAP_CONN_SEC_MODE_SET_ENC_NO_MITM(&bas_init_obj.battery_level_report_read_perm);
-
-    err_code = ble_bas_init(&m_bas, &bas_init_obj);
-    APP_ERROR_CHECK(err_code);
-}
 /**@brief adc服务初始化
  */
 void adc_init(void){
@@ -50,7 +27,7 @@ void adc_init(void){
     nrf_adc_configure((nrf_adc_config_t *)&nrf_adc_config);
     nrf_adc_input_select(ADC_INPUT_CHANNEL);
     nrf_adc_int_enable(ADC_INTENSET_END_Enabled << ADC_INTENSET_END_Pos);
-        NVIC_SetPriority(ADC_IRQn, 3); //1: High; 3: Low
+    NVIC_SetPriority(ADC_IRQn, 3); //1: High; 3: Low
     NVIC_EnableIRQ(ADC_IRQn);
 }
 
@@ -92,16 +69,20 @@ void ADC_appsh_mes_evt_handler(void *p_event_data, uint16_t event_size)
     if(adc_result_queue_index >= ADC_RESULT_QUEUE_SIZE)
     {
         adc_result_queue_index = 0;
-        tickCount = 10;
     }
     adc_result_queue[adc_result_queue_index++] = nrf_adc_result_get();
     
+    if(currVot == adc2vottage(adc_result_calc()) && currVot > 0) // 数据稳定后才延长测量时间
+    {
+        tickCount = 10;
+    }
     currVot = adc2vottage(adc_result_calc());
     bas_update_measure_data();
 }
 /** ADC测量完毕*/
 void ADC_IRQHandler(){
     nrf_adc_conversion_event_clean();
+    nrf_adc_stop();
     app_sched_event_put(NULL, NULL, ADC_appsh_mes_evt_handler);
 }
 /** ADC测量时钟*/
@@ -120,7 +101,6 @@ void adc_tick()
 }
 /** 初始化电量服务 */
 void bas_app_init(){
-    bas_init();
     adc_init();
 }
 /* 启动电量测量时钟*/
@@ -130,10 +110,6 @@ void bas_timer_start(){
 /*停止电量测量时钟*/
 void bas_timer_stop(){
     //do something
-}
-/*电量服务事件处理器*/
-void bas_ble_evt_dispatch(ble_evt_t * p_ble_evt){
-    ble_bas_on_ble_evt(&m_bas, p_ble_evt);
 }
 /*电压转换至电量*/
 uint8_t bas_vot2lvl(uint16_t lvl){
@@ -152,7 +128,6 @@ uint8_t bas_vot2lvl(uint16_t lvl){
 }
 /*获取当前电量*/
 uint8_t bas_get_cur_bat_lvl(){
-    wchData.temporary.battery_level = bas_vot2lvl(currVot);
     return wchData.temporary.battery_level;
 }
 /*获取当前电压*/
@@ -161,5 +136,5 @@ uint16_t bas_get_cur_bat_vot(){
 }
 /*手工同步电量信息*/
 void bas_update_measure_data(){
-    ble_bas_battery_level_update(&m_bas, bas_get_cur_bat_lvl());
+    wchData.temporary.battery_level = bas_vot2lvl(currVot);
 }

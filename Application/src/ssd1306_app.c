@@ -104,6 +104,7 @@ void ssd1306_spi_init(){
     config.sck_pin  = SPI_SCLK;
     config.mosi_pin = SPI_SDA;
     config.miso_pin = NRF_DRV_SPI_PIN_NOT_USED;
+    
     err_code = nrf_drv_spi_init(&m_spi_master, &config,
             spi_master_event_handler);
     APP_ERROR_CHECK(err_code);
