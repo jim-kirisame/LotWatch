@@ -305,10 +305,14 @@ void ssd1306_clearDisplay(void)
 void ssd1306_displayOff(void)
 {
     ssd1306_write_command(SSD1306_DISPLAYOFF);          //关闭显示
+    ssd1306_write_command(SSD1306_CHARGEPUMP);          // 0x8D
+    ssd1306_write_command(0x10);
 }
 
 void ssd1306_displayOn(void)
 {
+    ssd1306_write_command(SSD1306_CHARGEPUMP);          // 0x8D
+    ssd1306_write_command(0x14);
     ssd1306_write_command(SSD1306_DISPLAYON);          //关闭显示
 }
 

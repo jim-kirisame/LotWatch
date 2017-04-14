@@ -77,7 +77,7 @@
 
 #define MIN_CONN_INTERVAL MSEC_TO_UNITS(100, UNIT_1_25_MS)                          /**< Minimum acceptable connection interval (0.1 seconds). */
 #define MAX_CONN_INTERVAL MSEC_TO_UNITS(200, UNIT_1_25_MS)                          /**< Maximum acceptable connection interval (0.2 second). */
-#define SLAVE_LATENCY 8                                                             /**< Slave latency. */
+#define SLAVE_LATENCY 0                                                             /**< Slave latency. */
 #define CONN_SUP_TIMEOUT MSEC_TO_UNITS(4000, UNIT_10_MS)                            /**< Connection supervisory timeout (4 seconds). */
 
 #define SCREEN_SAVER_INTERVAL_MS (APP_TIMER_TICKS(5000, APP_TIMER_PRESCALER))
@@ -333,24 +333,30 @@ static void application_timers_start(void)
 /**@brief Function for putting the chip into sleep mode.
  *
  * @note This function will not return.
- */
-/*
+
+
 static void sleep_mode_enter(void)
 {
-    
-    uint32_t err_code = bsp_indication_set(BSP_INDICATE_IDLE);
-    APP_ERROR_CHECK(err_code);
+    uint32_t err_code;
+
+    //err_code = bsp_indication_set(BSP_INDICATE_IDLE);
+    //APP_ERROR_CHECK(err_code);
 
     // Prepare wakeup buttons.
-    err_code = bsp_btn_ble_sleep_mode_prepare();
-    APP_ERROR_CHECK(err_code);
+    //err_code = bsp_btn_ble_sleep_mode_prepare();
+    //APP_ERROR_CHECK(err_code);
 
     // Go to system-off mode (this function will not return; wakeup will cause a reset).
+    //mma8452_sleep();
+    
     err_code = sd_power_system_off();
     APP_ERROR_CHECK(err_code);
     
+    
+    
 	///bas_timer_stop();
-}*/
+}
+ */
 static void adv_start_switch(ble_adv_mode_t mode)
 {
     uint32_t err_code;
@@ -491,8 +497,8 @@ static void ble_stack_init(void)
     err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
     APP_ERROR_CHECK(err_code);
     
-    // Enable DCDC mode to achieve lower power consuption
-    err_code = sd_power_dcdc_mode_set(NRF_POWER_DCDC_ENABLE);
+    // Disable DCDC mode to achieve lower power consuption
+    err_code = sd_power_dcdc_mode_set(NRF_POWER_DCDC_DISABLE);
     APP_ERROR_CHECK(err_code);
     
     // using low power mode
@@ -605,7 +611,7 @@ static void buttons_leds_init(bool *p_erase_bonds)
  */
 static void power_manage(void)
 {
-#define NATIVE_SLEEP
+//#define NATIVE_SLEEP
 #ifdef NATIVE_SLEEP
     __SEV();
     __WFE();
@@ -650,7 +656,7 @@ void key_evt(uint8_t evt)
             */
             case TAP_ONCE_EVENT:
             //case TAP_TWICE_EVENT:
-            //case TOUCH_KEY_EVENT:   
+            case TOUCH_KEY_EVENT:   
             // 
             {
                                 
@@ -658,6 +664,9 @@ void key_evt(uint8_t evt)
                 {
                     case ALARM_DISP_PAGE:
                         alarm_exit();
+                        break;
+                    case CHARGING_PAGE:
+                        charge_fulled = false;
                         break;
                     default:
                         break;

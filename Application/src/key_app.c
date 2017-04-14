@@ -4,6 +4,7 @@
 #include "nrf_drv_gpiote.h"
 #include "app_error.h"
 #include "mma8452.h"
+#include "config_storage.h"
 
 _Bool charge_charging;
 _Bool charge_fulled;
@@ -44,9 +45,11 @@ void key_appsh_evt_handler(void *p_event_data, uint16_t event_size)
         case CHRG_PIN:
             event = CHARGING_EVENT;
             charge_charging = true;
+            charge_fulled = false;
             break;
         case STDBY_PIN:
             event = FULLED_EVENT;
+            charge_charging = false;
             charge_fulled = true;
             break;
         default:
