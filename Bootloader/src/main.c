@@ -48,8 +48,8 @@
 #include "pstorage_platform.h"
 #include "nrf_mbr.h"
 
-#define BOOTLOADER_BTN_CHARGE 9
-#define BOOTLOADER_BTN_FULLED 10
+#define BOOTLOADER_BTN_CHARGE 14
+#define BOOTLOADER_BTN_FULLED 17
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                                       /**< Include the service_changed characteristic. For DFU this should normally be the case. */
 
