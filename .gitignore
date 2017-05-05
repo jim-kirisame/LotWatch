@@ -3,3 +3,4 @@ JLinkLog.txt
 _build/*.*
 _build
 EventRecorderStub.scvd
+/app-js/platforms

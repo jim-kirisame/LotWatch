@@ -1,0 +1,72 @@
+body { }
+
+#content {
+  display: flex;
+/*min-height: 100vh;*/
+flex-direction: column;
+text-align:center;
+}
+
+ main {
+   flex: 1 0 auto;
+ }
+
+/*Hide Cordova loading tag */
+.ui-loader {
+  display:none;
+}
+
+a {
+  color: #00AEEF ;
+  text-decoration: none;
+}
+
+#log {
+  text-align: left;
+  background-color: #ddd;
+  height: 30%;
+  bottom: 0px;
+  position: absolute;
+  width: 100%;
+  padding: 10px;
+  overflow:auto;
+}
+#log p {
+  border-bottom: 1px solid #bbb;
+  /*line-height: 10px;*/
+}
+
+#log .error { color: red; }
+#log .info { color: blue; }
+#log .debug { color: green; }
+
+.btn {
+  width:100%;
+  margin:5px;
+}
+
+.small {
+  font-size: small;
+}
+
+.logo {
+  	background-image: url("logo-transparent.png");
+    width:32px;
+    height:32px;
+    background-size: 32px 32px;
+    margin:5px;
+}
+
+.connected {  background-color: #80cbc4;}
+.disconnected {  background-color: #ef9a9a;}
+.connecting {  background-color: #ffcc80;}
+
+.tabs {background-color:inherit !important;}
+.tabs  a {color:white !important; font-size:x-small}
+
+
+#chart_div {
+  width: 100%;
+  height: 450px;
+  background-color:gray
+}

@@ -188,12 +188,6 @@ void comm_recv_alarm_packet(packet_alarm * packet)
 }
 
 void comm_recv_packet_L0(packet_L0 * data){
-    if(data->checksum != checksum8((uint8_t *)data, 3))
-    {
-        comm_send_packet_L0(EVENT_FAIL_WRONG_CRC);
-        return;
-    }
-    
     if(comm_ack_stack.index > 0) //well, if no ack response here, clear ack resp stack
     {
         if(data->operation != EVENT_ACK)
@@ -240,12 +234,6 @@ void comm_recv_packet_L0(packet_L0 * data){
 
 
 void comm_recv_packet_L1(packet_L1 * data){
-    uint8_t crc = checksum8((uint8_t *)data, 8);
-    if(data->checksum != crc)
-    {
-        comm_send_packet_L0(EVENT_FAIL_WRONG_CRC);
-        return;
-    }
     switch(data->operation){
         case TIME:
             rtc_setTimeUnix((data->data[0]<<24) + (data->data[1]<<16) + (data->data[2]<<8) + (data->data[3]) );
@@ -273,12 +261,6 @@ void comm_recv_packet_L1(packet_L1 * data){
 }
 
 void comm_recv_packet_L2(packet_L2 * data){
-    uint8_t crc = checksum8((uint8_t *)data, sizeof(data) - 1);
-    if(data->checksum != crc)
-    {
-        comm_send_packet_L0(EVENT_FAIL_WRONG_CRC);
-        return;
-    }
     switch(data->operation)
     {
         case CONF_NAME:
@@ -315,12 +297,6 @@ void comm_proto_recv_appsh_handler(void *p_event_data, uint16_t event_size)
     if(((uint8_t *)p_event_data)[0] != PROTOCOL_START_FLAG)
     {
         comm_send_packet_L0(EVENT_WRONG_HEADER);
-        return;
-    }
-        
-    if(((uint8_t *)p_event_data)[1] != PROTOCOL_VERSION)
-    {
-        comm_send_packet_L0(EVENT_WRONG_VERSION);
         return;
     }
     
@@ -365,8 +341,6 @@ void comm_send_packet_L0(enum protocol_operation operation){
     packet_L0 p;
     p.start = PROTOCOL_START_FLAG;
     p.operation = (uint8_t)operation;
-    p.version = PROTOCOL_VERSION;
-    p.checksum = checksum8((uint8_t *)&p, 3);
     
     if(comm_send_buff_len > 123)
         return;
@@ -384,10 +358,6 @@ void comm_send_packet_L1(enum protocol_operation operation, uint8_t * data){
     packet_L1 p;
     p.start = PROTOCOL_START_FLAG;
     p.operation = (uint8_t)operation;
-    p.version = PROTOCOL_VERSION;
-    memcpy(p.data, data, 5);
-    
-    p.checksum = checksum8((uint8_t *)&p, 8);
     
     if(comm_send_buff_len > 118)
         return;
@@ -405,10 +375,6 @@ void comm_send_packet_L2(enum protocol_operation operation, uint8_t * data){
     packet_L2 p;
     p.start = PROTOCOL_START_FLAG;
     p.operation = (uint8_t)operation;
-    p.version = PROTOCOL_VERSION;
-    memcpy(p.data, data, 8);
-    
-    p.checksum = checksum8((uint8_t *)&p, sizeof(p)-1);
     
     if(comm_send_buff_len > 128 - sizeof(p))
         return;

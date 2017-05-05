@@ -47,25 +47,19 @@ void comm_send_acc_data(mma8452_acc_data data);
 
 typedef struct packet_L0{
     uint8_t start;
-    uint8_t version;
     uint8_t operation;
-    uint8_t checksum;
 } packet_L0;
 
 typedef struct packet_L1{
     uint8_t start;
-    uint8_t version;
     uint8_t operation;
     uint8_t data[5];
-    uint8_t checksum;
 } packet_L1;
 
 typedef struct packet_L2{
     uint8_t start;
-    uint8_t version;
     uint8_t operation;
     uint8_t data[8];
-    uint8_t checksum;
 } packet_L2;
 
 typedef struct packet_alarm{
