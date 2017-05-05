@@ -35,7 +35,7 @@ function Bluetooth(bluetooth) {
 
         if (!autoconnecting && reconnect && device.id) {
             bluetooth.isConnected(device.id, function() {}, function() {
-                if (device.status === CONNECTED) changeStatus("Disconnected", "disconnected");
+                if (device.status === CONNECTED) changeStatus("Disconnected", "断开连接");
                 device.status = DISCONNECTED;
                 autoConnect(device.id);
             })
@@ -78,7 +78,7 @@ function Bluetooth(bluetooth) {
 
             log(TAG, "Writing bluetooth: " + msg.replace(/\n/g, "\\n"));
             var endChar = "\r";
-            var fullMsg = endChar + endChar + msg.latinise() + endChar;
+            var fullMsg = endChar + endChar + msg + endChar;
 
             drawChat("send", msg);
 
@@ -92,11 +92,26 @@ function Bluetooth(bluetooth) {
         }
     };
 
+    this.sendRaw = function(msg) {
+        if (device.status === CONNECTED) {
+
+            log(TAG, "Writing bluetooth: " + stringToHexString(msg).replace(/\n/g, "\\n"));
+
+            if (msg.length > MAX_MSG_SIZE) log(TAG, "Cannot send msg, it's too large", "error");
+            else {
+                var bytes = stringToBytes(msg);
+                bluetooth.writeWithoutResponse(device.peripheral.id, "6e400001-b5a3-f393-e0a9-e50e24dcca9e", "6e400002-b5a3-f393-e0a9-e50e24dcca9e", bytes, function() { log(TAG, "send success", "info"); }, onError);
+            }
+        } else {
+            log(TAG, "Cannot send msg, Bluetooth device is not connected", "error");
+        }
+    }
+
     this.disconnect = function() {
 
         ble.disconnect(device.id, onSuccess, onError);
         device.status = DISCONNECTED;
-        changeStatus("Manually disconnected", "disconnected");
+        changeStatus("Manually disconnected", "未连接");
     }
 
     this.scan = function() {
@@ -143,7 +158,7 @@ function Bluetooth(bluetooth) {
         log(TAG, "onConnect peripheral: " + JSON.stringify(peripheral));
         device.status = CONNECTED;
 
-        changeStatus("Connected to " + peripheral.name, "connected");
+        changeStatus("Connected to " + peripheral.name, "已连接");
 
         device.peripheral = peripheral; //Sample peripheral data https://github.com/don/cordova-plugin-ble-central#peripheral-data
         //printConnectedDevice(peripheral);
@@ -157,7 +172,7 @@ function Bluetooth(bluetooth) {
         for (var i = 0; i < peripheral.characteristics.length; i++) {
             var c = peripheral.characteristics[i];
             var p = c.properties;
-            if (p.indexOf("Notify") >= 0) {
+            if (p.indexOf("Notify") >= 0 && c.service == "6e400001-b5a3-f393-e0a9-e50e24dcca9e") {
                 log(TAG, "Listening to " + peripheral.name + ": " + c.service + ", " + c.characteristic);
 
                 device.service = c.service;
@@ -166,7 +181,7 @@ function Bluetooth(bluetooth) {
 
                 //bluetooth.notify(peripheral.id, c.service, c.characteristic, onData, onError); //deprecated
 
-                bluetooth.stopNotification(peripheral.id, c.service, c.characteristic, onSuccess, onError);
+                //bluetooth.stopNotification(peripheral.id, c.service, c.characteristic, onSuccess, onError);
                 bluetooth.startNotification(peripheral.id, c.service, c.characteristic, onData, onError);
                 return;
             }
@@ -178,7 +193,7 @@ function Bluetooth(bluetooth) {
         log(TAG, "onDisconnect reason: " + reason);
         device.status = DISCONNECTED;
 
-        changeStatus("Disconnected: " + reason, "disconnected");
+        changeStatus("Disconnected: " + reason, "未连接");
     };
 
     var autoConnect = function(id) {
@@ -200,7 +215,7 @@ function Bluetooth(bluetooth) {
             bluetooth.scan([], 10, function(peripheral) {
                 if (peripheral.id == id) {
                     //var isSleeping = peripheral.name.indexOf('Z') != -1;
-                    changeStatus("Connecting to " + peripheral.name + ": " + peripheral.id, "connecting");
+                    changeStatus("Connecting to " + peripheral.name + ": " + peripheral.id, "连接中");
                     bluetooth.connect(device.id, onConnect, onDisconnect);
                     autoconnecting = false;
                 }
@@ -238,7 +253,7 @@ function Bluetooth(bluetooth) {
 
         var $item = $(rendered);
         $item.click(function() {
-            changeStatus("Connecting to " + peripheral.name + ": " + peripheral.id, "connecting");
+            changeStatus("Connecting to " + peripheral.name + ": " + peripheral.id, "连接中");
             bluetooth.connect(peripheral.id, onConnect, onDisconnect);
         });
         $("#list-devices").append($item);
@@ -262,7 +277,7 @@ function Bluetooth(bluetooth) {
             var deviceName = dev.attr('device-name');
             var deviceId = dev.attr('id');
 
-            changeStatus("Connected to " + deviceName + " (" + service + ", " + characteristic + ")", "connected");
+            changeStatus("Connected to " + deviceName + " (" + service + ", " + characteristic + ")", "已连接");
 
             device.id = deviceId;
             device.service = service;

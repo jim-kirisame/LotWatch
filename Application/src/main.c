@@ -761,7 +761,7 @@ void lotwatch_service_init(void)
 int main(void)
 {
     //uint32_t err_code;
-    bool erase_bonds = false;
+    bool erase_bonds = true;
 
     // Initialize.   
     timers_init();

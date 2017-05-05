@@ -6,6 +6,7 @@
 #include "nrf_adc.h"
 #include "key_app.h"
 #include "config_storage.h"
+#include "comm_protocol.h"
 
 #define ADC_RESULT_QUEUE_SIZE 7
 uint16_t adc_result_queue[ADC_RESULT_QUEUE_SIZE];   /**中值滤波**/
@@ -137,4 +138,5 @@ uint16_t bas_get_cur_bat_vot(){
 /*手工同步电量信息*/
 void bas_update_measure_data(){
     wchData.temporary.battery_level = bas_vot2lvl(currVot);
+    comm_send_status();
 }

@@ -1,13 +1,15 @@
 var sendTime = function() {
     var date = new Date();
     var seconds = date.getTime() / 1000;
-    var secondsUTC = seconds - (date.getTimezoneOffset() * 60);
-    bt.send("!tm:" + parseInt(secondsUTC));
+    //bt.send("!tm:" + parseInt(secondsUTC));
+    bt.sendRaw("\x55\x02" + intToBytes(seconds) + "\x00");
+    drawChat("send", "Time:" + seconds);
 };
 
 var changeStatus = function(message, status) {
 
     if (settings.notification) notification.watchduinoStatus(status);
+    cordova.plugins.backgroundMode.configure({ text: status });
     drawChat("info", status);
     log("Chat", message + " " + status)
 

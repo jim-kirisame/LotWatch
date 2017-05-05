@@ -9,6 +9,7 @@
 #include "step_counter.h"
 #include "config_storage.h"
 #include "mma8452.h"
+#include "bas_app.h"
 
 uint8_t comm_send_buff[128];
 uint8_t comm_send_buff_len = 0;
@@ -129,6 +130,19 @@ void comm_send_conf_behave()
  * Params:
  * Return:
  **/
+void comm_send_status()
+{
+    char p[5];
+    snprintf(p, 5, "%d", bas_get_cur_bat_vot());
+    p[4] = wchData.temporary.battery_level;
+    comm_send_packet_L1(STATUS, (uint8_t *)p);
+}
+
+/**
+ * Function:
+ * Params:
+ * Return:
+ **/
 void comm_send_conf_page()
 {
     uint8_t p[8];
@@ -224,6 +238,12 @@ void comm_recv_packet_L0(packet_L0 * data){
         break;
         case SLEEP_DATA:
             comm_send_sleep_data(0);
+        break;
+        case PING:
+            comm_send_packet_L0(PING);
+        break;
+        case STATUS:
+            comm_send_status();
         break;
         
         default:
@@ -358,6 +378,7 @@ void comm_send_packet_L1(enum protocol_operation operation, uint8_t * data){
     packet_L1 p;
     p.start = PROTOCOL_START_FLAG;
     p.operation = (uint8_t)operation;
+    memcpy(p.data, data, 5);
     
     if(comm_send_buff_len > 118)
         return;
@@ -375,6 +396,7 @@ void comm_send_packet_L2(enum protocol_operation operation, uint8_t * data){
     packet_L2 p;
     p.start = PROTOCOL_START_FLAG;
     p.operation = (uint8_t)operation;
+    memcpy(p.data, data, 8);
     
     if(comm_send_buff_len > 128 - sizeof(p))
         return;

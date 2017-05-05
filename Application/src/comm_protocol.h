@@ -9,7 +9,7 @@
 
 enum protocol_operation{
     STATUS = 0x00,
-    
+    PING        =   0x01,
     TIME        =   0x02,
     ALARM       =   0x03,
     NOTIFY      =   0x04,
@@ -44,6 +44,7 @@ void comm_send_packet_L2(enum protocol_operation operation, uint8_t * data);
 void comm_proto_send_appsh_handler(void *p_event_data, uint16_t event_size);
 void comm_proto_recv_appsh_handler(void *p_event_data, uint16_t event_size);
 void comm_send_acc_data(mma8452_acc_data data);
+void comm_send_status(void);
 
 typedef struct packet_L0{
     uint8_t start;
