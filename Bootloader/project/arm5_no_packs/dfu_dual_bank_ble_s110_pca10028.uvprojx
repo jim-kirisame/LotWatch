@@ -439,6 +439,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\main.c</FilePath>
             </File>
+            <File>
+              <FileName>ssd1306_mini.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\ssd1306_mini.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

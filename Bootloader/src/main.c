@@ -47,9 +47,10 @@
 #include "softdevice_handler_appsh.h"
 #include "pstorage_platform.h"
 #include "nrf_mbr.h"
+#include "ssd1306_mini.h"
 
-#define BOOTLOADER_BTN_CHARGE 14
-#define BOOTLOADER_BTN_FULLED 17
+#define FORCE_UPDATE_BTN_IPT 28
+#define FORCE_UPDATE_BTN_OPT 29
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                                       /**< Include the service_changed characteristic. For DFU this should normally be the case. */
 
@@ -93,10 +94,9 @@ static void timers_init(void)
  */
 static void buttons_init(void)
 {
-    nrf_gpio_cfg_input(BOOTLOADER_BTN_CHARGE,
-                             NRF_GPIO_PIN_PULLUP);  
-    nrf_gpio_cfg_input(BOOTLOADER_BTN_FULLED,
-                             NRF_GPIO_PIN_PULLUP);
+    nrf_gpio_cfg_output(FORCE_UPDATE_BTN_OPT);
+    
+    nrf_gpio_cfg_input(FORCE_UPDATE_BTN_IPT,NRF_GPIO_PIN_PULLDOWN);  
     nrf_gpio_cfg_output(UPDATE_IN_PROGRESS_LED);
     nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
 }
@@ -172,6 +172,8 @@ int main(void)
     bool     dfu_start = false;
     bool     app_reset = (NRF_POWER->GPREGRET == BOOTLOADER_DFU_START);
 
+    uint8_t line = 0;
+    
     if (app_reset)
     {
         NRF_POWER->GPREGRET = 0;
@@ -185,12 +187,18 @@ int main(void)
     // Initialize.
     timers_init();
     buttons_init();
+    ssd1306_init();
+    ssd1306_cls();
+    ssd1306_draw5x7Font(0,6,"DFU: 1.1.0, Build:");
+    ssd1306_draw5x7Font(0,7,__DATE__);
+    ssd1306_draw5x7Font(80,7,__TIME__);
+    ssd1306_draw5x7Font(0,line++,"Booting...");
 
     (void)bootloader_init();
 
     if (bootloader_dfu_sd_in_progress())
     {
-        nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
+        ssd1306_draw5x7Font(0,line++,"Updateing SD.");
 
         err_code = bootloader_dfu_sd_update_continue();
         APP_ERROR_CHECK(err_code);
@@ -201,7 +209,7 @@ int main(void)
         err_code = bootloader_dfu_sd_update_finalize();
         APP_ERROR_CHECK(err_code);
 
-        nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
+        ssd1306_draw5x7Font(0,line++,"Done.");
     }
     else
     {
@@ -211,18 +219,17 @@ int main(void)
     }
 
     dfu_start  = app_reset;
-    dfu_start |= (nrf_gpio_pin_read(BOOTLOADER_BTN_CHARGE) == 0);
-    dfu_start |= (nrf_gpio_pin_read(BOOTLOADER_BTN_FULLED) == 0);
+    dfu_start |= (nrf_gpio_pin_read(FORCE_UPDATE_BTN_IPT) == 1);
     
     if (dfu_start || (!bootloader_app_is_valid(DFU_BANK_0_REGION_START)))
     {
-        nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
+        ssd1306_draw5x7Font(0,line++,"Waiting for firmware.");
 
         // Initiate an update of the firmware.
         err_code = bootloader_dfu_start();
         APP_ERROR_CHECK(err_code);
 
-        nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
+        ssd1306_draw5x7Font(0,line++,"Done.");
     }
 
     if (bootloader_app_is_valid(DFU_BANK_0_REGION_START) && !bootloader_dfu_sd_in_progress())
