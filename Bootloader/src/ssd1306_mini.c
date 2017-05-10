@@ -4,6 +4,7 @@
 #include "nrf.h"
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
+#include "string.h"
 
 void ssd1306_drv_init(void)
 {
@@ -19,7 +20,6 @@ void ssd1306_spi_write_raw(uint8_t data)
     {
         nrf_gpio_pin_clear(SPI_SCLK);
         nrf_gpio_pin_write(SPI_SDA, data & (1 << i));
-        __nop();
         nrf_gpio_pin_set(SPI_SCLK);
     }
     //nrf_gpio_pin_set(SPI_CS);
@@ -37,7 +37,6 @@ void ssd1306_spi_write(uint8_t * p_tx_data, uint16_t len, _Bool dc){
 void ssd1306_write_command(uint8_t command)
 {
     ssd1306_spi_write(&command, 1, false);
-    nrf_delay_ms(1);
 }
 
 void ssd1306_write_data(uint8_t * data, uint32_t len)
@@ -125,19 +124,22 @@ void ssd1306_cls(void)
 }
 
 void ssd1306_draw5x7Font(uint8_t x, uint8_t y, char * string){
-    uint8_t data[6];
+    uint8_t str[128] = {0};
+    uint8_t ptr = 0;
     if(y > 8 || x > 128)
         return;
     
     for(int i=0;i<128;i++)
     {
         if(!string[i]) //end of string
-            return;
-        for(int j=0; j<5 && x<128 && string[i]>=0x20 ;j++)
-            data[j] = font5x8[(string[i]-0x20)*5+j];
-        data[5] = 0x00; //space
+            break;
+        if(string[i]>=0x20)
+        {
+            memcpy(str + ptr, &font5x8[(string[i]-0x20)*5], 5);
+            ptr+=6;
+        }
         
-        ssd1306_drawByte(x + i * 6,y, data, 6);
     }
+     ssd1306_drawByte(x,y, str, ptr);
 }
 

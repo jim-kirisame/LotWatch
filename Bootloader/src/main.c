@@ -189,9 +189,8 @@ int main(void)
     buttons_init();
     ssd1306_init();
     ssd1306_cls();
-    ssd1306_draw5x7Font(0,6,"DFU: 1.1.0, Build:");
-    ssd1306_draw5x7Font(0,7,__DATE__);
-    ssd1306_draw5x7Font(80,7,__TIME__);
+    ssd1306_draw5x7Font(0,7,"1.1.1");
+    ssd1306_draw5x7Font(60,7,__DATE__);
     ssd1306_draw5x7Font(0,line++,"Booting...");
 
     (void)bootloader_init();
@@ -234,10 +233,11 @@ int main(void)
 
     if (bootloader_app_is_valid(DFU_BANK_0_REGION_START) && !bootloader_dfu_sd_in_progress())
     {
+        ssd1306_draw5x7Font(0,line++,"Normal boot.");
         // Select a bank region to use as application region.
         // @note: Only applications running from DFU_BANK_0_REGION_START is supported.
         bootloader_app_start(DFU_BANK_0_REGION_START);
     }
-    
+    ssd1306_draw5x7Font(0,line++,"Reset.");
     NVIC_SystemReset();
 }
