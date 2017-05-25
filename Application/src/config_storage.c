@@ -58,7 +58,7 @@ void config_load_default(void)
     wchData.persist.config.page_order[1] = 0x81;
     wchData.persist.config.page_order[2] = 0x82;
     wchData.persist.config.page_order[3] = 0x87;
-    //wchData.persist.config.page_order[4] = 0x86;
+    wchData.persist.config.page_order[4] = 0x88;
     /*
     wchData.persist.config.alarm_data[0].hour = 0;
     wchData.persist.config.alarm_data[0].minute = 1;

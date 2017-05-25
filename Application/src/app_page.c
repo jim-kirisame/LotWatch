@@ -11,6 +11,10 @@
 #include "bas_app.h"
 #include "step_counter.h"
 #include "config_storage.h"
+#include "acc-algorithm.h"
+
+const uint8_t bar_data[9] = {0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff};
+
 
 void page_disp_clock_page(void)
 {
@@ -157,6 +161,38 @@ void page_disp_charging_page()
     ssd1306_draw16Font(str,48,6);
 }
 
+/**
+ * Function:
+ * Params:
+ * Return:
+ **/
+void page_acc_print_page()
+{
+    for(uint8_t i=0;i<ACC_ALGO_BUFFER_SIZE;i++)
+    {
+        uint8_t data;
+            uint16_t temp = acc_sport_buffer[(i + acc_buffer_pt) % ACC_ALGO_BUFFER_SIZE] / 16 - 32;
+            data = temp;
+        for(uint8_t j=0;j<8;j++)
+        {
+            uint8_t disp;
+            if(data <= j * 8)
+            {
+                disp = 0x00;
+            }
+            else if(data >= (j+1) * 8)
+            {
+                disp = 0xff;
+            }
+            else
+            {
+                disp = bar_data[(j+1) * 8 - data];
+                //disp = 0xff >> ((j+1) * 8 - data);
+            }
+            ssd1306_drawByte(i,7-j,disp);
+        }
+    }
+}
 
 /**
  * Function: Display current page
@@ -198,6 +234,11 @@ void page_disp_current()
             break;
         case CHARGING_PAGE:
             page_disp_charging_page();
+            wchData.temporary.page_should_render_every_frame = true;
+            wchData.temporary.page_keep_awake = true;
+            break;
+        case ACC_PRINT_PAGE:
+            page_acc_print_page();
             wchData.temporary.page_should_render_every_frame = true;
             wchData.temporary.page_keep_awake = true;
             break;

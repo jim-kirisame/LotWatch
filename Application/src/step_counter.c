@@ -6,6 +6,7 @@
 #include "mma8452.h"
 #include "rtc_app.h"
 #include "config_storage.h"
+#include "acc-algorithm.h"
 
 APP_TIMER_DEF(m_acc_timer_meas_id);             /**< Battery timer. */
 //packet_userdata step_userdata;
@@ -52,7 +53,7 @@ void step_counter_timer_handler(void *p_context)
     mma8452_read_acc(&acc_data);
     
     xyz = acc_data.x*acc_data.x + acc_data.y*acc_data.y +acc_data.z*acc_data.z;
-    
+    acc_algo_add(acc_data.x, acc_data.y, acc_data.z);
     health_algorithm_data_in_accelerate(acc_data.x,
                                         acc_data.y,
                                         acc_data.z,

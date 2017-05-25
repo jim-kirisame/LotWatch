@@ -12,6 +12,7 @@ enum app_page_screen {
     CONN_PASS_PAGE,
     CHARGING_PAGE,
     DEBUG_PAGE = 0x87,
+    ACC_PRINT_PAGE
 };
 
 void page_disp_current(void);

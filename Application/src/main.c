@@ -71,7 +71,7 @@
 #define APP_ADV_FAST_TIMEOUT_IN_SECONDS 20                                          /**< The advertising timeout in units of seconds. */
 
 #define APP_ADV_SLOW_INTERVAL 1600                                                  /**< The advertising interval (in units of 0.625 ms. This value corresponds to 25 ms). */
-#define APP_ADV_SLOW_TIMEOUT_IN_SECONDS 120                                         /**< The advertising timeout in units of seconds. */
+#define APP_ADV_SLOW_TIMEOUT_IN_SECONDS 0                                         /**< The advertising timeout in units of seconds. */
 
 #define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
 
