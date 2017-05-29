@@ -1,50 +1,60 @@
-
 #chat {
-  text-align: left;
-  border:1px solid #ccc;
-  width: 100%;
-  overflow:auto;
-  background-color: #ddd;
-  height: 30%;
-  bottom: 0px;
-  position: absolute;
-  padding:10px;
+    text-align: left;
+    width: 100%;
+    overflow: auto;
+    bottom: 0px;
+    padding: 10px;
+}
 
-}
 #chat div {
-  width: 100%;
-  text-align:center;
-  position:relative;
+    width: 100%;
+    text-align: center;
+    position: relative;
 }
+
 #chat .time {
-  font-size: small;
-  color:gray;
-  margin: -30px 10px 0px 10px;
+    font-size: small;
+    color: gray;
+    margin: -30px 10px 0px 10px;
 }
+
 #chat .info .time {
-  margin: -5px;
+    margin: -5px;
 }
+
 #chat .text {
-  border-radius: 10px;
-  padding: 5px 10px;
-  display: inline-block;
-  margin: 5px;
+    border-radius: 2px;
+    padding: 5px 10px;
+    display: inline-block;
+    margin: 5px;
 }
 
 #chat .send {
-  text-align:left;
+    text-align: left;
 }
+
 #chat .receive {
-  text-align:right;
+    text-align: right;
 }
+
 #chat .send .text {
-  background-color: #e8f5e9;
-  padding-left: 60px;
+    background-color: #e8f5e9;
+    padding-left: 60px;
 }
+
 #chat .receive .text {
-  background-color: #fff3e0;
-  padding-right: 60px;
+    background-color: #fff3e0;
+    padding-right: 60px;
 }
-#chat .error { color: red; }
-#chat .info { color: blue; }
-#chat .debug { color: green; }
+
+#chat .error {
+    color: red;
+}
+
+#chat .info {
+    color: blue;
+}
+
+#chat .debug {
+    color: green;
+}

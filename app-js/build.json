@@ -1,0 +1,8 @@
+{
+  "android": {
+    "release": {
+      "keystore": "release-key.keystore",
+      "alias": "lotlab"
+    }
+  }
+}

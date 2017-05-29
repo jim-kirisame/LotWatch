@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="css/MaterialIcons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--Import materialize.css-->
+    <link type="text/css" rel="stylesheet" href="css/materialize.min.css" media="screen,projection" />
+    <link rel=stylesheet type=text/css href=css/index.css></link>
+    <link rel="stylesheet" href="css/chat.css"></link>
+    <link rel="stylesheet" href="css/mdDateTimePicker.min.css">
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+
+    <!--Import jQuery before materialize.js-->
+    <script type="text/javascript" src="js/ux/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="js/ux/materialize.min.js"></script>
+    <script type='text/javascript' src=js/ux/mustache.min.js></script>
+
+    <script type='text/javascript' src='js/utils.js'></script>
+
+    <script type='text/javascript' src=js/cordova/notification.js></script>
+    <script type='text/javascript' src=js/cordova/dialog.js></script>
+
+    <script type='text/javascript' src=js/bluetooth/bluetooth.js></script>
+    <script type='text/javascript' src=js/bluetooth/receive.js></script>
+
+    <script type='text/javascript' src=js/settings.js></script>
+    <script type='text/javascript' src=js/actions.js></script>
+    <script type='text/javascript' src=js/battery.js></script>
+
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="nav-wrapper container">
+                <a href="#" data-activates="slide-out" class="button-collapse"><i class="material-icons">menu</i></a>
+                <a href="#" class="brand-logo">Logo</a>
+                <ul id="nav-mobile" class="right hide-on-med-and-down">
+                    <li><a href="sass.html">Sass</a></li>
+                </ul>
+            </div>
+        </nav>
+        <ul id="slide-out" class="side-nav fixed">
+            <li>
+                <div class="userView">
+                    <div class="background" style="background: url(img/background.jpg) center center; background-size: cover;">
+                    </div>
+                    <a href="#!user"><img class="circle" src="images/yuna.jpg"></a>
+                    <a href="#!name"><span class="white-text name">John Doe</span></a>
+                    <a href="#!email"><span class="white-text email">jdandturk@gmail.com</span></a>
+                </div>
+            </li>
+            <li><a href="#connect"><i class="material-icons">watch</i>连接</a></li>
+            <li><a href="#alarm"><i class="material-icons">alarm</i>闹钟</a></li>
+            <li><a href="#setting"><i class="material-icons">settings</i>设置</a></li>
+            <li><a href="#debug"><i class="material-icons">chat</i>调试</a></li>
+            <li><a href="#about"><i class="material-icons">help</i>关于</a></li>
+        </ul>
+    </header>
+    <main class='container content'>
+        <div class="row">
+            <div class="col s12 hide">
+                <ul class="tabs">
+                    <li class="tab active"><a href="#connect">连接</a></li>
+                    <li class="tab"><a href="#alarm">闹钟</a></li>
+                    <li class="tab"><a href="#setting">设置</a></li>
+                    <li class="tab"><a href="#debug">调试</a></li>
+                    <li class="tab"><a href="#about">关于</a></li>
+                </ul>
+            </div>
+            <div id='connect'>
+                <div class="row center-align">
+
+                    <p id='bt-status'>未连接</p>
+                    <p>队列中有 <b id='message-queue'> </b> 条消息</p>
+
+                </div>
+
+                <div class="row">
+                    <div class="col s6"><a id='bt-scan' class='waves-effect waves-light btn modal-trigger' href="#modal1">扫描设备</a>
+                    </div>
+                    <div class="col s6"><a id='bt-disconnect' class='btn'>断开连接</a>
+                    </div>
+
+                    <div class="col s4">
+                        <input type="checkbox" id="reconnect" checked/>
+                        <label for="reconnect">自动重连</label>
+                    </div>
+
+                </div>
+
+                <script id='device-template' type=x-tmpl-mustache>
+                    <li id='device' deviceid='{{device.id}}' title='{{ title }}' class="collection-item">
+                        {{ #device }}{{name}}<span class="secondary-content">{{id}}</span>{{ /device }}
+                    </li>
+                </script>
+                <!-- http://stackoverflow.com/questions/10045768/render-simple-array-using-mustache-js-->
+                <script id='characteristic-template' type=x-tmpl-mustache>
+                    <p>
+                        {{ #device }} Characteristics {{id}}: {{name}}
+                        <ul id='{{id}}' device-name='{{id}} - {{name}}'>
+                            {{#characteristics}}
+                            <li id='{{service}}-{{characteristic}}' class='characteristic' title='{{ title }}'>
+                                {{service}} - {{characteristic}}: {{#properties}} {{.}} {{/properties}}
+                            </li>
+                            {{/characteristics}}
+                        </ul>
+                        {{ /device }}
+                    </p>
+                </script>
+
+                <div id="modal1" class="modal">
+                    <div class="modal-content">
+
+
+                        <ul id='list-devices' class="collection">
+                        </ul>
+
+                        <div class="progress">
+                            <div class="indeterminate"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat">取消</a>
+                    </div>
+                </div>
+            </div>
+            <div id='alarm'>
+
+                <div class="row">
+                    <div class="col s12" id="alarm-container">
+                        <script id='alarm-template' type=x-tmpl-mustache>
+                            {{ #alarms }}
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="row">
+                                        <div class="col s9">
+                                            <h5 id="alarm-{{id}}">{{time}}</h5>
+                                        </div>
+                                        <div class="col s3 right-align" style="margin:11px auto;">
+                                            <div class="switch">
+                                                <label>
+                                                <input type="checkbox" {{#enable}} checked {{/enable}}>
+                                                <span class="lever"></span>
+                                            </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="">
+                                        <div class="input-field">
+                                            <select multiple>
+                                                <option value="" disabled selected>选择重复日期</option>
+                                                {{ #repeats }}
+                                                <option value="{{id}}" {{#select}}selected{{/select}}>{{name}}</option>
+                                                {{ /repeats }}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {{ /alarms }}
+                        </script>
+                    </div>
+                </div>
+
+
+            </div>
+            <div id='setting'>
+
+                <div class="row">
+                    <form class="col s12">
+                        <div class="row">
+                            <div class="col s12 m3">
+                                <h5>基本设置</h5>
+                            </div>
+                            <div class="col s12 m9">
+                                <div class="input-field">
+                                    <input placeholder="LotWatch" id="watch_name" type="text" maxlength="8">
+                                    <label for="watch_name">手表名称</label>
+                                </div>
+                                <div class="input-field">
+                                    <input placeholder="点亮屏幕后自动熄灭的时长（秒）" min="1" max="20" id="wakeup_time" type="number" class="validate">
+                                    <label for="wakeup_time">唤醒时长</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col s12 m3">
+                                <h5>闹钟设置</h5>
+                            </div>
+                            <div class="col s12 m9">
+                                <div class="input-field">
+                                    <input placeholder="闹钟每次震动的时长（秒）" min="1" max="59" class="validate" id="alarm_time" type="number">
+                                    <label for="alarm_time">闹钟时长</label>
+                                </div>
+                                <div class="input-field">
+                                    <input placeholder="没有关闭闹钟情况下第二次提醒的间隔（分钟）" min="1" max="240" class="validate" id="realarm_time" type="number">
+                                    <label for="realarm_time">再响间隔</label>
+                                </div>
+                                <div class="input-field">
+                                    <input placeholder="设为0则不开启再响功能" id="realarm_counter" type="number" min="0" max="127" class="validate">
+                                    <label for="realarm_counter">再响次数</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col s12 m3">
+                                <h5>通知设置</h5>
+                            </div>
+                            <div class="col s12 m9">
+                                <div class=" row">
+                                    <div class="col s9">
+                                        通知亮屏
+                                    </div>
+                                    <div class="col s3 right-align">
+                                        <div class="switch">
+                                            <label>
+                                            <input type="checkbox" />
+                                            <span class="lever"></span>
+                                            
+                                        </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class=" row">
+                                    <div class="col s9">
+                                        通知震动
+                                    </div>
+                                    <div class="col s3 right-align">
+                                        <div class="switch">
+                                            <label>
+                                            <input type="checkbox" />
+                                            <span class="lever"></span>
+                                            
+                                        </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class=" row">
+                                    <div class="col s9">
+                                        勿扰时段
+                                    </div>
+                                    <div class="col s3 right-align">
+                                        <div class="switch">
+                                            <label>
+                                            <input type="checkbox" />
+                                            <span class="lever"></span>
+                                            
+                                        </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col s12 m3">
+                                <h5>页面设置</h5>
+                            </div>
+                            <div class="col s12 m9">
+                                <div class="input-field cow">
+                                    <select multiple>
+                                        <option value="" disabled selected>选择要显示的页面</option>
+                                        <option value="1">运动</option>
+                                        <option value="2">闹钟</option>
+                                        <option value="3">通知</option>
+                                        <option value="4">秒表</option>
+                                        <option value="5">倒计时</option>
+                                        <option value="6">BPM</option>
+                                        <option value="7">调试</option>
+
+                                    </select>
+                                    <label>显示页面</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col s6"><a id='bt-scan' class='waves-effect waves-light btn modal-trigger' href="#modal1">保存设置</a>
+                            </div>
+                            <div class="col s6"><a id='bt-disconnect' class='btn waves-effect waves-light'>读取设置</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+
+            </div>
+            <div id='debug'>
+                <div class="col s12">
+
+                    <button class='waves-effect waves-light btn' id='clear-chat'>清除</button>
+                </div>
+
+
+                <script id='chat-template' type=x-tmpl-mustache>
+                    <div class='{{ type }}'>
+                        <p class='text card-panel'> {{ text }} </p>
+                        <p class='time'> {{ time }}</p>
+                    </div>
+
+                </script>
+                <div id='chat'>
+                </div>
+
+            </div>
+            <div id='about'>
+                <div class="container">
+                    <h1 class="center-align">LotWatch</h1>
+                    <p class="center-align">1.0.0</p>
+                    <p>本程序使用 Cordova 构建并使用了以下开源项目，在此表示感谢。</p>
+                    <ul>
+                        <li>Materialize</li>
+                        <li>material-icons</li>
+                        <li>echarts</li>
+                        <li>Mustache</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="page-footer">
+        <div class="footer-copyright">
+            <div class="container">
+                © 2017 Copyright Lotlab
+                <a class="grey-text text-lighten-4 right" href="#!">Github</a>
+            </div>
+        </div>
+    </footer>
+    <script type=text/javascript src=cordova.js></script>
+    <script type='text/javascript' src=js/cordova/start.js></script>
+    <script type='text/javascript' src=js/controls.js></script>
+    <script src="js/ux/moment.min.js"></script>
+    <script src="js/ux/lang/zh-cn.js"></script>
+    <script src="js/ux/draggabilly.pkgd.min.js"></script>
+    <script src="js/ux/mdDateTimePicker.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            moment.locale("zh");
+            $('.modal').modal();
+            //$('ul.tabs').tabs();
+            $('.side-nav').tabs();
+            $('.side-nav').tabs('select_tab', 'debug');
+            $('.side-nav').tabs('select_tab', 'connect');
+            $(".button-collapse").sideNav();
+            $('select').material_select();
+
+            $('#slide-out').on("click", "a", function(e) {
+                if (!!$(this).attr("target")) {
+                    return;
+                }
+                $('.button-collapse').sideNav('hide');
+            });
+
+            var template = $('#alarm-template').html();
+            Mustache.parse(template);
+            var rendered = Mustache.render(template, {
+                alarms: [{
+                    id: "1",
+                    time: "18:30",
+                    enable: true,
+                    repeats: [{
+                        id: 0,
+                        select: false,
+                        name: "周日"
+                    }, {
+                        id: 1,
+                        select: true,
+                        name: "周一"
+                    }, {
+                        id: 2,
+                        select: true,
+                        name: "周二"
+                    }, {
+                        id: 3,
+                        select: true,
+                        name: "周三"
+                    }, {
+                        id: 4,
+                        select: true,
+                        name: "周四"
+                    }, {
+                        id: 5,
+                        select: true,
+                        name: "周五"
+                    }, {
+                        id: 6,
+                        select: false,
+                        name: "周六"
+                    }]
+                }, {
+                    id: "2",
+                    time: "7:30",
+                    enable: false,
+                    repeats: [{
+                        id: 0,
+                        select: false,
+                        name: "周日"
+                    }, {
+                        id: 1,
+                        select: true,
+                        name: "周一"
+                    }, {
+                        id: 2,
+                        select: true,
+                        name: "周二"
+                    }, {
+                        id: 3,
+                        select: true,
+                        name: "周三"
+                    }, {
+                        id: 4,
+                        select: true,
+                        name: "周四"
+                    }, {
+                        id: 5,
+                        select: true,
+                        name: "周五"
+                    }, {
+                        id: 6,
+                        select: false,
+                        name: "周六"
+                    }]
+                }]
+            });
+            $('#alarm-container').html(rendered);
+            $('select').material_select();
+            var c = new mdDateTimePicker.default({
+                type: 'time',
+                orientation: 'PORTRAIT'
+            });
+            c.trigger = document.getElementById('alarm-1');
+            $('#alarm-1').bind('onOk', function() {
+                $('#alarm-1').html(c.time.toString());
+            });
+
+            $('#alarm-1').click(function() {
+                c.toggle();
+            });
+        });
+    </script>
+</body>
+
+</html>

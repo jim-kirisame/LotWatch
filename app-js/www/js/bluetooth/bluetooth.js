@@ -4,6 +4,9 @@ function Bluetooth(bluetooth) {
     var CONNECTED = "connected",
         DISCONNECTED = "disconnected";
 
+    var SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e",
+        CHARACTERISTIC_UUID_WRITE = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+
     var MAX_MSG_SIZE = 10;
     var MAX_QUEUE_SIZE = 5;
 
@@ -74,22 +77,7 @@ function Bluetooth(bluetooth) {
     };
 
     this.sendNow = function(msg) {
-        if (device.status === CONNECTED) {
-
-            log(TAG, "Writing bluetooth: " + msg.replace(/\n/g, "\\n"));
-            var endChar = "\r";
-            var fullMsg = endChar + endChar + msg + endChar;
-
-            drawChat("send", msg);
-
-            if (fullMsg.length > MAX_MSG_SIZE) sendInParts(fullMsg);
-            else {
-                var bytes = stringToBytes(fullMsg);
-                bluetooth.writeWithoutResponse(device.peripheral.id, device.service, device.characteristic, bytes, function() {}, onError);
-            }
-        } else {
-            log(TAG, "Cannot send msg, Bluetooth device is not connected", "error");
-        }
+        this.sendRaw(msg);
     };
 
     this.sendRaw = function(msg) {
@@ -100,7 +88,7 @@ function Bluetooth(bluetooth) {
             if (msg.length > MAX_MSG_SIZE) log(TAG, "Cannot send msg, it's too large", "error");
             else {
                 var bytes = stringToBytes(msg);
-                bluetooth.writeWithoutResponse(device.peripheral.id, "6e400001-b5a3-f393-e0a9-e50e24dcca9e", "6e400002-b5a3-f393-e0a9-e50e24dcca9e", bytes, function() { log(TAG, "send success", "info"); }, onError);
+                bluetooth.writeWithoutResponse(device.peripheral.id, SERVICE_UUID, CHARACTERISTIC_UUID_WRITE, bytes, function() { log(TAG, "send success", "info"); }, onError);
             }
         } else {
             log(TAG, "Cannot send msg, Bluetooth device is not connected", "error");
@@ -166,13 +154,14 @@ function Bluetooth(bluetooth) {
 
         autoNotifyCharacteristic(peripheral);
         $('#modal1').closeModal();
+        sendTime();
     };
 
     var autoNotifyCharacteristic = function(peripheral) {
         for (var i = 0; i < peripheral.characteristics.length; i++) {
             var c = peripheral.characteristics[i];
             var p = c.properties;
-            if (p.indexOf("Notify") >= 0 && c.service == "6e400001-b5a3-f393-e0a9-e50e24dcca9e") {
+            if (p.indexOf("Notify") >= 0 && c.service == SERVICE_UUID) {
                 log(TAG, "Listening to " + peripheral.name + ": " + c.service + ", " + c.characteristic);
 
                 device.service = c.service;
