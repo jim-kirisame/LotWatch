@@ -2,10 +2,14 @@
 #define _KEY_APP_H
 #include <stdint.h>
 
-#define KEY_PIN 17
-#define INT_PIN 14
+//#define KEY_PIN 17
+#define INT_PIN 16
+#define INT2_PIN 15
+
+#define CHRG_PIN_2 8
 #define CHRG_PIN 9
 #define STDBY_PIN 10
+#define STDBY_PIN_2 11
 
 extern _Bool charge_charging;
 extern _Bool charge_fulled;

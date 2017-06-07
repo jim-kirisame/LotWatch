@@ -39,18 +39,16 @@ void key_appsh_evt_handler(void *p_event_data, uint16_t event_size)
                     break;
             }
             break;
+            /*
         case KEY_PIN:
             event = TOUCH_KEY_EVENT;
-            break;
+            break;*/
         case CHRG_PIN:
-            event = CHARGING_EVENT;
-            charge_charging = true;
-            charge_fulled = false;
-            break;
         case STDBY_PIN:
-            event = FULLED_EVENT;
-            charge_charging = false;
-            charge_fulled = true;
+            charge_charging = !nrf_gpio_pin_read(CHRG_PIN_2);
+            charge_fulled = !nrf_gpio_pin_read(STDBY_PIN_2);
+            if(charge_charging && ! charge_fulled) event = FULLED_EVENT;
+            else if(!charge_charging && charge_fulled) event = CHARGING_EVENT;
             break;
         default:
             event = (enum key_evt_type)temp->pin;
@@ -86,15 +84,17 @@ void key_init(void)
 
     err_code = nrf_drv_gpiote_init();
     APP_ERROR_CHECK(err_code);
-    
+    /*
     //Touch key
     nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_LOTOHI(false);
     in_config.pull = NRF_GPIO_PIN_PULLDOWN;
     
+
     err_code = nrf_drv_gpiote_in_init(KEY_PIN, &in_config, in_pin_handler);
     APP_ERROR_CHECK(err_code);
 
     nrf_drv_gpiote_in_event_enable(KEY_PIN, true);
+    */
     
     //acc interrupt
     nrf_drv_gpiote_in_config_t in_config_2 = GPIOTE_CONFIG_IN_SENSE_HITOLO(false);
@@ -104,6 +104,7 @@ void key_init(void)
     APP_ERROR_CHECK(err_code);
     
     nrf_drv_gpiote_in_event_enable(INT_PIN, true);
+
     
     //charging interrupt
     nrf_drv_gpiote_in_config_t in_config_3 = GPIOTE_CONFIG_IN_SENSE_HITOLO(false);
@@ -119,5 +120,8 @@ void key_init(void)
     APP_ERROR_CHECK(err_code);
     
     nrf_drv_gpiote_in_event_enable(STDBY_PIN, true);
+    nrf_gpio_cfg_input(CHRG_PIN_2, NRF_GPIO_PIN_PULLUP );
+    nrf_gpio_cfg_input(STDBY_PIN_2, NRF_GPIO_PIN_PULLUP );
+    nrf_gpio_cfg_input(INT2_PIN, NRF_GPIO_PIN_PULLUP );
 }
 

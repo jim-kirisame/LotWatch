@@ -102,20 +102,25 @@ void ssd1306_spi_init(){
     };
 
     config.sck_pin  = SPI_SCLK;
-    config.mosi_pin = SPI_SDA;
+    config.mosi_pin = SPI_MOSI;
     config.miso_pin = NRF_DRV_SPI_PIN_NOT_USED;
     
     err_code = nrf_drv_spi_init(&m_spi_master, &config,
             spi_master_event_handler);
     APP_ERROR_CHECK(err_code);
+    
+    nrf_gpio_pin_set(OLED_EN);
+    
 }
 
 void ssd1306_spi_uninit()
 {
+    nrf_gpio_pin_clear(OLED_EN);
     nrf_drv_spi_uninit(&m_spi_master);
 }
 
 void ssd1306_spi_write(uint8_t * p_tx_data, uint16_t len, _Bool dc){
+    nrf_gpio_pin_clear(OLED_CS);
     nrf_gpio_pin_write(SPI_DC, dc); //data: true; command: false;
         
     uint8_t rxdata[1];
@@ -124,6 +129,7 @@ void ssd1306_spi_write(uint8_t * p_tx_data, uint16_t len, _Bool dc){
         p_tx_data, len, rxdata, 1);
     if(err_code != NRF_SUCCESS)
         APP_ERROR_CHECK(err_code);
+    nrf_gpio_pin_set(OLED_CS);
 }
 
 void ssd1306_write_command(uint8_t command)
@@ -141,6 +147,10 @@ void ssd1306_gpio_init(){
     //Init some Pin
     nrf_gpio_cfg_output(SPI_RES);
     nrf_gpio_cfg_output(SPI_DC);
+    nrf_gpio_cfg_output(OLED_CS);
+    
+    NRF_GPIO->PIN_CNF[OLED_CS] |= 0x600; //Set pin to be "Disconnected 0 and standard 1"
+    nrf_gpio_cfg_output(OLED_EN);
 }
 
 void ssd1306_chip_init(){

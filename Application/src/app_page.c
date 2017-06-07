@@ -13,8 +13,8 @@
 #include "config_storage.h"
 #include "acc-algorithm.h"
 
-const uint8_t bar_data[9] = {0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff};
-
+//const uint8_t bar_data[9] = {0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff};
+const uint8_t bar_data[9] = {0xff, 0xfe, 0xfc, 0xf8, 0xf0, 0xe0, 0xc0, 0x80, 0x00};
 
 void page_disp_clock_page(void)
 {
@@ -67,12 +67,10 @@ void page_disp_debug_page(void)
     
     ssd1306_clearDisplay();
     
-    snprintf(str2, 24, "Acc_X: %d", acc_data.x);
+    snprintf(str2, 24, "Acc: %d %d %d", acc_data.x, acc_data.y, acc_data.z);
     ssd1306_draw5x7Font(0,0,str2);
-    snprintf(str2, 24, "Acc_Y: %d", acc_data.y);
+    snprintf(str2, 24, "Step: %d", wchData.persist.step_walkdata.walking);
     ssd1306_draw5x7Font(0,1,str2);
-    snprintf(str2, 24, "Acc_Z: %d", acc_data.z);
-    ssd1306_draw5x7Font(0,2,str2);
     snprintf(str2, 24, "%d-%d-%d %d:%d:%d %s", date.year, date.month, date.day, date.hour, date.minute, date.second, weekstr);
     ssd1306_draw5x7Font(0,3,str2);
     snprintf(str2, 24, "Bat: %d mV %02d%%", bas_get_cur_bat_vot(),wchData.temporary.battery_level);
@@ -95,17 +93,9 @@ void page_disp_step_page(void)
 {
     char str[8];
     ssd1306_clearDisplay();
-    snprintf(str,8,"%d",wchData.persist.step_walkdata.walking_slow);
-    ssd1306_draw16Font(str,37,0);
-    ssd1306_drawIcon16(ICON_WALK_SLOW, 17, 0);
-    snprintf(str,8,"%d",wchData.persist.step_walkdata.walking_fast);
-    ssd1306_draw16Font(str,37,2);
-    ssd1306_drawIcon16(ICON_WALK_FAST, 17, 2);
-    snprintf(str,8,"%d",wchData.persist.step_walkdata.run);
-    ssd1306_draw16Font(str,37,4);
-    ssd1306_drawIcon16(ICON_RUN, 17, 4);
-    snprintf(str,8,"%d km",wchData.persist.step_walkdata.distance / 10000);
-    ssd1306_draw16Font(str,17,6);
+    snprintf(str,8,"%d",wchData.persist.step_walkdata.walking);
+    ssd1306_draw16Font(str,37,3);
+    ssd1306_drawIcon16(ICON_WALK_SLOW, 17, 3);
 }
 void page_disp_alarming_page(void)
 {
@@ -171,11 +161,28 @@ void page_acc_print_page()
     for(uint8_t i=0;i<ACC_ALGO_BUFFER_SIZE;i++)
     {
         uint8_t data;
-            uint16_t temp = acc_sport_buffer[(i + acc_buffer_pt) % ACC_ALGO_BUFFER_SIZE] / 16 - 32;
-            data = temp;
+         uint16_t temp = acc_sport_buffer[(i + acc_buffer_pt) % ACC_ALGO_BUFFER_SIZE] / 16 - 32;
+        // uint16_t temp = acc_sport_buffer[(i + acc_buffer_pt) % ACC_ALGO_BUFFER_SIZE] / 2 - 480;
+        data = temp;
         for(uint8_t j=0;j<8;j++)
         {
             uint8_t disp;
+#define FLOAT_POINT
+#ifdef FLOAT_POINT
+            if(data <= j * 8)
+            {
+                disp = 0x00;
+            }
+            else if(data > (j+1) * 8)
+            {
+                disp = 0x00;
+            }
+            else
+            {
+                //disp = bar_data[(j+1) * 8 - data];
+                disp = 1 << ((j+1) * 8 - data);
+            }
+#else
             if(data <= j * 8)
             {
                 disp = 0x00;
@@ -189,6 +196,7 @@ void page_acc_print_page()
                 disp = bar_data[(j+1) * 8 - data];
                 //disp = 0xff >> ((j+1) * 8 - data);
             }
+#endif
             ssd1306_drawByte(i,7-j,disp);
         }
     }

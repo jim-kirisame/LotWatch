@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#define SDA_PIN 15
-#define SCL_PIN 16
+#define SDA_PIN 14
+#define SCL_PIN 13
 
 #define I2C_SLAVE_ADDRESS 0x38
 

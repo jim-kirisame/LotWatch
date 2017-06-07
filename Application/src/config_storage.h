@@ -24,7 +24,6 @@ typedef struct watch_config
     
     uint8_t display_sleep_time;                 //显示时长
     
-    packet_userdata step_userdata;              //用户数据
     alarm_data_item alarm_data[MAX_ALARM_COUNT];//闹钟数据
 } watch_config;
 

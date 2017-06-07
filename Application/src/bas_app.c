@@ -137,6 +137,9 @@ uint16_t bas_get_cur_bat_vot(){
 }
 /*手工同步电量信息*/
 void bas_update_measure_data(){
-    wchData.temporary.battery_level = bas_vot2lvl(currVot);
-    comm_send_status();
+    if(wchData.temporary.battery_level != bas_vot2lvl(currVot))
+    {
+        wchData.temporary.battery_level = bas_vot2lvl(currVot);
+        comm_send_status();
+    }
 }

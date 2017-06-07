@@ -33,34 +33,10 @@ void comm_send_step_data_current(uint8_t index)
     data.type = index;
     switch(index){
         case 0x00:
-            data.data = wchData.persist.step_walkdata.walking_slow;
-            break;
-        case 0x01:
-            data.data = wchData.persist.step_walkdata.walking_fast;
-            break;
-        case 0x02:
-            data.data = wchData.persist.step_walkdata.run;
-            break;
-        case 0x03:
-            data.data = wchData.persist.step_walkdata.distance;
-            break;
-        case 0x04:
-            data.data = wchData.temporary.step_lastday.cal;
+            data.data = wchData.persist.step_walkdata.walking;
             break;
         case 0x10:
-            data.data = wchData.temporary.step_lastday.walking_slow;
-            break;
-        case 0x11:
-            data.data = wchData.temporary.step_lastday.walking_fast;
-            break;
-        case 0x12:
-            data.data = wchData.temporary.step_lastday.run;
-            break;
-        case 0x13:
-            data.data = wchData.temporary.step_lastday.distance;
-            break;
-        case 0x14:
-            data.data = wchData.temporary.step_lastday.cal;
+            data.data = wchData.temporary.step_lastday.walking;
             break;
         default:
             return;
@@ -84,17 +60,6 @@ void comm_send_alarm_packet(uint8_t index)
     comm_ack_queue_add(comm_send_alarm_packet, index+1);
 }
 
-/**
- * Function:
- * Params:
- * Return:
- **/
-void comm_send_user_data()
-{
-    uint8_t p[8];
-    memcpy(&p, &wchData.persist.config.step_userdata,8);
-    comm_send_packet_L2(USER_DATA, p);
-}
 
 /**
  * Function:
@@ -224,9 +189,6 @@ void comm_recv_packet_L0(packet_L0 * data){
         case ALARM:
             comm_send_alarm_packet(0x00);
             break;
-        case USER_DATA:
-            comm_send_user_data();
-            break;
         case CONF_PAGE:
             comm_send_conf_page();
         break;
@@ -270,10 +232,6 @@ void comm_recv_packet_L1(packet_L1 * data){
             //generate some event here
             comm_send_packet_L0(EVENT_SUCCESS);
         break;
-        case USER_DATA:
-            memcpy(&wchData.persist.config.step_userdata, data->data,5);
-            step_health_algorithm_reload();
-            comm_send_packet_L0(EVENT_SUCCESS);
         default:
             comm_send_packet_L0(EVENT_FAIL_INVALID_OPERATION);
         break;
