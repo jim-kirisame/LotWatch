@@ -11,18 +11,23 @@ void ssd1306_drv_init(void)
     nrf_gpio_cfg_output(SPI_RES);
     nrf_gpio_cfg_output(SPI_DC);
     nrf_gpio_cfg_output(SPI_SCLK);
-    nrf_gpio_cfg_output(SPI_SDA);
+    nrf_gpio_cfg_output(SPI_MOSI);
+    nrf_gpio_cfg_output(OLED_CS);
+    
+    NRF_GPIO->PIN_CNF[OLED_CS] |= 0x600; //Set pin to be "Disconnected 0 and standard 1"
+    nrf_gpio_cfg_output(OLED_EN);
+    nrf_gpio_pin_set(OLED_EN);
 }
 void ssd1306_spi_write_raw(uint8_t data)
 {
-    //nrf_gpio_pin_clear(SPI_CS);
+    nrf_gpio_pin_clear(OLED_CS);
     for(int i=7;i>=0;i--)
     {
         nrf_gpio_pin_clear(SPI_SCLK);
-        nrf_gpio_pin_write(SPI_SDA, data & (1 << i));
+        nrf_gpio_pin_write(SPI_MOSI, data & (1 << i));
         nrf_gpio_pin_set(SPI_SCLK);
     }
-    //nrf_gpio_pin_set(SPI_CS);
+    nrf_gpio_pin_set(OLED_CS);
 }
     
 void ssd1306_spi_write(uint8_t * p_tx_data, uint16_t len, _Bool dc){
@@ -123,11 +128,26 @@ void ssd1306_cls(void)
     }
 }
 
+void ssd1306_setDrawAdd(uint8_t x, uint8_t y)
+{
+    if(x >=128 || y >=8)
+        return;
+    ssd1306_write_command(SSD1306_COLUMNADDR);
+    ssd1306_write_command(x);   // Column start address (0 = reset)
+    ssd1306_write_command(0x7F); // Column end address (127 = reset)
+
+    ssd1306_write_command(SSD1306_PAGEADDR);
+    ssd1306_write_command(y); // Page start address (0 = reset)
+    ssd1306_write_command(7); // Page end address
+}
+
 void ssd1306_draw5x7Font(uint8_t x, uint8_t y, char * string){
     uint8_t str[128] = {0};
     uint8_t ptr = 0;
     if(y > 8 || x > 128)
         return;
+    
+    ssd1306_setDrawAdd(x,y);
     
     for(int i=0;i<128;i++)
     {
@@ -140,6 +160,6 @@ void ssd1306_draw5x7Font(uint8_t x, uint8_t y, char * string){
         }
         
     }
-     ssd1306_drawByte(x,y, str, ptr);
+    ssd1306_write_data(str, ptr);
 }
 

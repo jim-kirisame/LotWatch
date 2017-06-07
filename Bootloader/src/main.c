@@ -49,8 +49,8 @@
 #include "nrf_mbr.h"
 #include "ssd1306_mini.h"
 
-#define FORCE_UPDATE_BTN_IPT 28
-#define FORCE_UPDATE_BTN_OPT 29
+#define FORCE_UPDATE_BTN_1 15
+#define FORCE_UPDATE_BTN_2 16
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                                       /**< Include the service_changed characteristic. For DFU this should normally be the case. */
 
@@ -63,7 +63,12 @@
 
 #define SCHED_QUEUE_SIZE                20                                                      /**< Maximum number of events in the scheduler queue. */
 
+#define RTC_TIMER_INTERVAL_MS (APP_TIMER_TICKS(1000, APP_TIMER_PRESCALER))
+APP_TIMER_DEF(m_rtc_timer);             /**< rtc timer. */
 
+uint8_t time_count = 6;
+uint8_t line = 0;
+uint8_t count_line = 0;
 
 /**@brief Callback function for asserts in the SoftDevice.
  *
@@ -81,12 +86,32 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
     app_error_handler(0xDEADBEEF, line_num, p_file_name);
 }
 
+void rtc_timer_handler(void *p_context){
+    UNUSED_PARAMETER(p_context);
+    char str2[24];
+    
+    time_count--;
+
+    snprintf(str2, 24, "%ds left to boot.", time_count);
+    
+    ssd1306_draw5x7Font(0,count_line,str2);
+}
+
 /**@brief Function for initializing the timer handler module (app_timer).
  */
 static void timers_init(void)
 {
     // Initialize timer module, making it use the scheduler.
     APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, true);
+    
+    
+    uint32_t err_code = app_timer_create(&m_rtc_timer,
+                                APP_TIMER_MODE_REPEATED,
+                                rtc_timer_handler);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = app_timer_start(m_rtc_timer, RTC_TIMER_INTERVAL_MS, NULL);
+    APP_ERROR_CHECK(err_code);
 }
 
 
@@ -94,9 +119,10 @@ static void timers_init(void)
  */
 static void buttons_init(void)
 {
-    nrf_gpio_cfg_output(FORCE_UPDATE_BTN_OPT);
+    //nrf_gpio_cfg_output(FORCE_UPDATE_BTN_OPT);
     
-    nrf_gpio_cfg_input(FORCE_UPDATE_BTN_IPT,NRF_GPIO_PIN_PULLDOWN);  
+    nrf_gpio_cfg_input(FORCE_UPDATE_BTN_1,NRF_GPIO_PIN_PULLUP);  
+    nrf_gpio_cfg_input(FORCE_UPDATE_BTN_2,NRF_GPIO_PIN_PULLUP);  
     nrf_gpio_cfg_output(UPDATE_IN_PROGRESS_LED);
     nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
 }
@@ -171,8 +197,6 @@ int main(void)
     uint32_t err_code;
     bool     dfu_start = false;
     bool     app_reset = (NRF_POWER->GPREGRET == BOOTLOADER_DFU_START);
-
-    uint8_t line = 0;
     
     if (app_reset)
     {
@@ -189,7 +213,7 @@ int main(void)
     buttons_init();
     ssd1306_init();
     ssd1306_cls();
-    ssd1306_draw5x7Font(0,7,"1.1.1");
+    ssd1306_draw5x7Font(0,7,"1.1.2");
     ssd1306_draw5x7Font(60,7,__DATE__);
     ssd1306_draw5x7Font(0,line++,"Booting...");
 
@@ -216,19 +240,34 @@ int main(void)
         ble_stack_init(!app_reset);
         scheduler_init();
     }
+    
+    if(count_line == 0)
+    {
+        char str2[24];
+        count_line = line++;
+        snprintf(str2, 24, "%ds left to boot.", time_count);
+        ssd1306_draw5x7Font(0,count_line,str2);
+    }
 
     dfu_start  = app_reset;
-    dfu_start |= (nrf_gpio_pin_read(FORCE_UPDATE_BTN_IPT) == 1);
     
-    if (dfu_start || (!bootloader_app_is_valid(DFU_BANK_0_REGION_START)))
+    while(time_count)
     {
-        ssd1306_draw5x7Font(0,line++,"Waiting for firmware.");
+        app_sched_execute();
+        dfu_start |= (nrf_gpio_pin_read(FORCE_UPDATE_BTN_1) == 0);
+        dfu_start |= (nrf_gpio_pin_read(FORCE_UPDATE_BTN_2) == 0);
+        if (dfu_start || (!bootloader_app_is_valid(DFU_BANK_0_REGION_START)))
+        {
+            app_timer_stop(m_rtc_timer);
+            ssd1306_draw5x7Font(0,line++,"Waiting for firmware.");
 
-        // Initiate an update of the firmware.
-        err_code = bootloader_dfu_start();
-        APP_ERROR_CHECK(err_code);
+            // Initiate an update of the firmware.
+            err_code = bootloader_dfu_start();
+            APP_ERROR_CHECK(err_code);
 
-        ssd1306_draw5x7Font(0,line++,"Done.");
+            ssd1306_draw5x7Font(0,line++,"Done.");
+            break;
+        }
     }
 
     if (bootloader_app_is_valid(DFU_BANK_0_REGION_START) && !bootloader_dfu_sd_in_progress())

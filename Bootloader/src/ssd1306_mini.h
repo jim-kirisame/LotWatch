@@ -2,10 +2,14 @@
 #define __SSD1306_MINI__
 
 #include <stdint.h>
+
 #define SPI_RES 27
 #define SPI_DC 26
 #define SPI_SCLK 25
-#define SPI_SDA 24
+#define SPI_MOSI 24
+#define SPI_MISO 18
+#define OLED_EN 23
+#define OLED_CS 28
 
 #define SSD1306_SETCONTRAST 0x81
 #define SSD1306_DISPLAYALLON_RESUME 0xA4
