@@ -56,6 +56,6 @@ if (!isCordova()) {
         drawChat(lastMessageType, "Sample text");
     }, 2000);
 
-    //drawChat("info", "Sample text");
+    drawChat("info", "Sample text");
 
 }

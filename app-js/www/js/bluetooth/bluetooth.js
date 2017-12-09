@@ -153,7 +153,7 @@ function Bluetooth(bluetooth) {
         log(TAG, "onConnect device: " + JSON.stringify(device));
 
         autoNotifyCharacteristic(peripheral);
-        $('#modal1').closeModal();
+        // $('#modal1').closeModal();
         sendTime();
     };
 
@@ -274,7 +274,7 @@ function Bluetooth(bluetooth) {
 
             bluetooth.notify(deviceId, service, characteristic, onData, onError);
 
-            $('#modal1').closeModal();
+            $('#modal1').close();
         });
         $("#list-devices").html($items);
     };
