@@ -161,7 +161,7 @@ void page_acc_print_page()
     for(uint8_t i=0;i<ACC_ALGO_BUFFER_SIZE;i++)
     {
         uint8_t data;
-         uint16_t temp = acc_sport_buffer[(i + acc_buffer_pt) % ACC_ALGO_BUFFER_SIZE] / 16 - 32;
+         uint16_t temp = acc_sport_buffer[(i + acc_buffer_pt) % ACC_ALGO_BUFFER_SIZE].total / 16 - 32;
         // uint16_t temp = acc_sport_buffer[(i + acc_buffer_pt) % ACC_ALGO_BUFFER_SIZE] / 2 - 480;
         data = temp;
         for(uint8_t j=0;j<8;j++)
@@ -243,7 +243,7 @@ void page_disp_current()
         case CHARGING_PAGE:
             page_disp_charging_page();
             wchData.temporary.page_should_render_every_frame = true;
-            wchData.temporary.page_keep_awake = true;
+            wchData.temporary.page_keep_awake = false;
             break;
         case ACC_PRINT_PAGE:
             page_acc_print_page();

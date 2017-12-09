@@ -48,7 +48,7 @@ void config_load_default(void)
     wchData.persist.config.alarm_delay_time = 5;
     wchData.persist.config.alarm_vibra_time = 10;
     wchData.persist.config.debug_enable = false;
-    wchData.persist.config.display_sleep_time = 5;
+    wchData.persist.config.display_sleep_time = 3;
     snprintf(wchData.persist.config.ble_name, 9, "HelloWor");
     wchData.persist.config.page_order[0] = 0x80;
     wchData.persist.config.page_order[1] = 0x81;
@@ -65,7 +65,7 @@ void config_load_default(void)
 void config_post_init()
 {
     wchData.temporary.disp_awake = true;
-    wchData.temporary.page_current_screen = 0x87;
+    wchData.temporary.page_current_screen = 0x80;
 }
 
 void config_read(void)

@@ -4,9 +4,9 @@
 #include <math.h> 
 #include "config_storage.h"
 
-volatile uint16_t acc_window_buffer[ACC_ALGO_WINDOW_SIZE];
+volatile acc_data acc_window_buffer[ACC_ALGO_WINDOW_SIZE];
 volatile uint8_t acc_window_pt=0;
-volatile uint16_t acc_sport_buffer[ACC_ALGO_BUFFER_SIZE];
+volatile acc_data acc_sport_buffer[ACC_ALGO_BUFFER_SIZE];
 volatile uint8_t acc_buffer_pt = 0;
 
 int abs(int a)
@@ -41,7 +41,10 @@ uint32_t SquareRoot_2(uint32_t a_nInput)
 void acc_algo_proc_step_data(void);
 void acc_algo_add(int16_t x, int16_t y, int16_t z)
 {
-    acc_window_buffer[acc_window_pt] = SquareRoot_2(x*x + y*y + z*z);
+    acc_window_buffer[acc_window_pt].x=x;
+    acc_window_buffer[acc_window_pt].y=y;
+    acc_window_buffer[acc_window_pt].z=z;
+    acc_window_buffer[acc_window_pt].total = SquareRoot_2(x*x + y*y + z*z);
     acc_algo_hamming_window();
     acc_window_pt++;
     if(acc_window_pt >= ACC_ALGO_WINDOW_SIZE)
@@ -54,7 +57,7 @@ void acc_algo_hamming_window()
     uint8_t top = ACC_ALGO_WINDOW_SIZE/2;
     //uint8_t offset = top + 1 > acc_window_pt ? ACC_ALGO_WINDOW_SIZE + acc_window_pt - top - 1 : acc_window_pt - top - 1;
     uint8_t offset = acc_window_pt + 1;
-    volatile uint32_t result = 0;
+    volatile acc_data result;
     float weight,total = 0;
 #define DELTA_WINDOW
 #ifdef DELTA_WINDOW
@@ -65,17 +68,29 @@ void acc_algo_hamming_window()
         {
             weight = (float)(i + 1) / (float)(top + 1);
             total += (float)weight;
-            result += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE] * (float)weight;
+            result.x += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE].x * (float)weight;
+            result.y += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE].y * (float)weight;
+            result.z += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE].z * (float)weight;
+            result.total += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE].total * (float)weight;
         }
         for(uint8_t i=ACC_ALGO_WINDOW_SIZE-1;i>top;i--)
         {
             weight = (float)(2 * top - i + 1) / (float)(top + 1);
             total += (float)weight;
-            result += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE] * (float)weight;
+            result.x += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE].x * (float)weight;
+            result.y += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE].y * (float)weight;
+            result.z += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE].z * (float)weight;
+            result.total += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE].total * (float)weight;
         }
         total += 1;
-        result += acc_window_buffer[top];
-        result /= (float)total;
+        result.x += acc_window_buffer[top].x;
+        result.y += acc_window_buffer[top].y;
+        result.z += acc_window_buffer[top].z;
+        result.total += acc_window_buffer[top].total;
+        result.x /= (float)total;
+        result.y /= (float)total;
+        result.z /= (float)total;
+        result.total /= (float)total;
     }
     else
     {
@@ -83,16 +98,25 @@ void acc_algo_hamming_window()
         {
             weight = (float)(i + 1) / (float)top;
             total += (float)weight;
-            result += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE] * (float)weight;
+            result.x += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE].x * (float)weight;
+            result.y += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE].y * (float)weight;
+            result.z += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE].z * (float)weight;
+            result.total += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE].total * (float)weight;
         }
         for(uint8_t i=ACC_ALGO_WINDOW_SIZE-1;i>top;i--)
         {
             weight = (float)(2 * top - i + 1) / (float)top;
             total += (float)weight;
-            result += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE] * (float)weight;
+            result.x += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE].x * (float)weight;
+            result.y += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE].y * (float)weight;
+            result.z += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE].z * (float)weight;
+            result.total += (float)acc_window_buffer[(offset + i) % ACC_ALGO_WINDOW_SIZE].total * (float)weight;
         }
         
-        result /= total;
+        result.x /= (float)total;
+        result.y /= (float)total;
+        result.z /= (float)total;
+        result.total /= (float)total;
     }
 
 #else    
@@ -143,15 +167,15 @@ void acc_algo_proc_step_data()
 {
     uint16_t now, prev;
     uint8_t thisIndex = acc_buffer_pt > 1 ? acc_buffer_pt - 2 : ACC_ALGO_BUFFER_SIZE - 1;
-    now = acc_sport_buffer[acc_buffer_pt > 0 ? acc_buffer_pt - 1 : ACC_ALGO_BUFFER_SIZE] / 16;
-    prev = acc_sport_buffer[thisIndex] / 16;
+    now = acc_sport_buffer[acc_buffer_pt > 0 ? acc_buffer_pt - 1 : ACC_ALGO_BUFFER_SIZE].total / 16;
+    prev = acc_sport_buffer[thisIndex].total / 16;
     
     if(prev == now) return;
     if(!acc_rising ^ (prev > now))
     {
         //¼«´óÖµÅÐ¶Ï
-        uint16_t lastPeak = acc_sport_buffer[acc_lastPeakIndex] / 16;
-        uint16_t lastValley = acc_sport_buffer[acc_lastValleyIndex] / 16;
+        uint16_t lastPeak = acc_sport_buffer[acc_lastPeakIndex].total / 16;
+        uint16_t lastValley = acc_sport_buffer[acc_lastValleyIndex].total / 16;
         uint16_t p2v = lastPeak - lastValley;
         uint16_t v2p = prev - lastValley;
         acc_rising = now > prev;

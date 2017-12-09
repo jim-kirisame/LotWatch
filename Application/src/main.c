@@ -76,8 +76,8 @@
 #define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
 
 #define MIN_CONN_INTERVAL MSEC_TO_UNITS(100, UNIT_1_25_MS)                          /**< Minimum acceptable connection interval (0.1 seconds). */
-#define MAX_CONN_INTERVAL MSEC_TO_UNITS(200, UNIT_1_25_MS)                          /**< Maximum acceptable connection interval (0.2 second). */
-#define SLAVE_LATENCY 0                                                             /**< Slave latency. */
+#define MAX_CONN_INTERVAL MSEC_TO_UNITS(500, UNIT_1_25_MS)                          /**< Maximum acceptable connection interval (0.2 second). */
+#define SLAVE_LATENCY 1                                                             /**< Slave latency. */
 #define CONN_SUP_TIMEOUT MSEC_TO_UNITS(4000, UNIT_10_MS)                            /**< Connection supervisory timeout (4 seconds). */
 
 #define SCREEN_SAVER_INTERVAL_MS (APP_TIMER_TICKS(5000, APP_TIMER_PRESCALER))
@@ -655,7 +655,7 @@ void key_evt(uint8_t evt)
                     alarm_delay_action(); //too sensitive now
             */
             case TAP_ONCE_EVENT:
-            //case TAP_TWICE_EVENT:
+            case TAP_TWICE_EVENT:
             case TOUCH_KEY_EVENT:   
             // 
             {

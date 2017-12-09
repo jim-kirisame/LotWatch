@@ -485,11 +485,6 @@
               <FilePath>..\..\src\comm_protocol.c</FilePath>
             </File>
             <File>
-              <FileName>AlgorithmLibFornrf51.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>..\..\src\AlgorithmLibFornrf51.lib</FilePath>
-            </File>
-            <File>
               <FileName>step_counter.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\step_counter.c</FilePath>
@@ -1964,11 +1959,6 @@
               <FileName>comm_protocol.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\comm_protocol.c</FilePath>
-            </File>
-            <File>
-              <FileName>AlgorithmLibFornrf51.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>..\..\src\AlgorithmLibFornrf51.lib</FilePath>
             </File>
             <File>
               <FileName>step_counter.c</FileName>
