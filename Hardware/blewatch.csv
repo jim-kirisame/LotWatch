@@ -1,0 +1,37 @@
+Source,D:/Work/ELE/BleWatch/blewatch.sch,,,,,,,,,,
+Kicad Rev,Eeschema 4.0.6,,,,,,,,,,
+Generated Date,2017-6-3 15:54,,,,,,,,,,
+,,,,,,,,,,,
+Title,Not Set,,,,,,,,,,
+Company,Not Set,,,,,,,,,,
+Revision,Not Set,,,,,,,,,C1、2、5、7,1uF
+Date Issue,Not Set,,,,,,,,,C3、10,4.7uF
+,,,,,,,,,,C4,2.2uF
+Reference,Value,Library,Library Ref,,,,,,,C6、12,22nF
+U1,nrf51822-02,ble4100-nrf-cache,nrf51822-02,,,,,,,C8、9,0.1uF
+U4,TP4057,ble4100-nrf-cache,TP4057,,,,,,,,
+U5,RT9193,ble4100-nrf-cache,RT9193,,,,,,,R1,910K
+P5,CONN_01X15,conn,CONN_01X15,,,,,,,R6,10M
+,,device,R_Small,,,,,,,R7,2.2M
+,,device,C_Small,,,,,,,R9,5K
+,,device,C_Small,,,,,,,,
+,,device,C_Small,,,,,,,,
+,,device,C_Small,,,,,,,,
+,,device,C_Small,,,,,,,,
+,,device,R_Small,,,,,,,,
+,,device,R_Small,,,,,,,,
+,,device,C_Small,,,,,,,,
+,,device,C_Small,,,,,,,,
+,,device,C_Small,,,,,,,,
+,,device,R_Small,,,,,,,,
+,,device,C_Small,,,,,,,,
+,,device,C_Small,,,,,,,,
+,,device,C_Small,,,,,,,,
+P1,CONN_01X04,conn,CONN_01X04,,,,,,,,
+P2,CONN_01X02,conn,CONN_01X02,,,,,,,,
+P3,CONN_01X02,conn,CONN_01X02,,,,,,,,
+Q1,SI2306,device,Q_NMOS_GSD,,,,,,,,
+P7,CONN_01X02,conn,CONN_01X02,,,,,,,,
+Q2,SI2306,device,Q_NMOS_GSD,,,,,,,,
+U2,MMA8452,blewatch-cache,MMA8452,,,,,,,,
+U3,25LC_EEPROM,memory,25LC_EEPROM,,,,,,,,
